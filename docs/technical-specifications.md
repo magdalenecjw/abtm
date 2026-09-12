@@ -1,13 +1,12 @@
 # Automated Book Teller Machine — Formal Technical Specification
 
 **Document status:** Development-ready specification  
-**Version:** 1.1  
+**Version:** 1.2  
 **Date:** 12 September 2026
 
-## Changelog (v1.0 → v1.1)
+## Changelog
 
-The following sections were revised after a detailed workflow design pass (see `docs/workflows.md` for the full step-by-step reasoning):
-
+**v1.0 → v1.1** — after the borrowing/management/admin workflow design pass:
 - **§5.3** (`loan_requests`) — two new columns: `approved_at`, `email_delivery_failed`.
 - **§7** (Loan State Machine) — added `APPROVED → CANCELLED` as a valid admin-only transition (e.g. borrower no-show after approval).
 - **§10** (Public Borrowing Request) — fully detailed: passcode gate mechanics, rate limiting, verification-token handoff, field constraints, duplicate-submission guard, server-side submission order.
@@ -15,7 +14,12 @@ The following sections were revised after a detailed workflow design pass (see `
 - **§12** (Admin Borrowing Workflow) — fully detailed: dashboard scope/filters, and precise behaviour for approve, cancel, mark collected, mark returned, and regenerate-link actions.
 - **§13** (Long-Loan Attention) — split into two independent flagging systems ("not yet collected" and graduated loan-duration labels), replacing the single 30-day flag.
 
-All other sections are unchanged from v1.0.
+**v1.1 → v1.2** — after the spreadsheet sync and Goodreads import workflow design pass:
+- **§16** (Spreadsheet Synchronisation) — fully detailed: manual XLSX upload, validation rules, preview categories (new/updated-with-diff/unchanged/missing), atomic apply. See `docs/workflows.md` §6.
+- **§18–19** (Goodreads Import / My Reads) — fully detailed: shelf filtering, duplicate detection via `goodreads_id`, title+author catalogue matching, editable preview, atomic apply. See `docs/workflows.md` §7.
+- **§5.4** (`reads`) — `source_detail` column dropped entirely; `source` converted from free-text to a native enum (`public.read_source`: `Owned`, `NLB`, nullable for "other/unknown").
+
+Full step-by-step reasoning for all workflow decisions lives in `docs/workflows.md`, which this document points to rather than duplicates.
 
 ## 1. Purpose
 
@@ -190,8 +194,7 @@ One row represents one reading event.
 | `rating` | NUMERIC | NULL | User rating |
 | `notes` | TEXT | NULL | Reading notes |
 | `date_read` | DATE | NULL | Date read |
-| `source` | TEXT | NULL | Source category |
-| `source_detail` | TEXT | NULL | Additional source information |
+| `source` | ENUM (`public.read_source`: `Owned`, `NLB`) | NULL | Distinguishes owned-library reads from NLB (public library) reads; `NULL` covers any other/unknown source (e.g. borrowed from a friend), which does not need finer detail |
 | `goodreads_id` | TEXT | NULL | Goodreads identifier |
 | `created_at` | TIMESTAMPTZ | NOT NULL | Creation timestamp |
 | `updated_at` | TIMESTAMPTZ | NOT NULL | Last update |
@@ -200,6 +203,8 @@ Rules:
 - `book_id` is nullable.
 - Multiple rows may reference the same `book_id`, supporting rereads.
 - A read may exist without a corresponding owned book.
+- When `book_id` is set, `title`/`author` are sourced from `books`, not from any import source, keeping catalogue and reading-history data consistent (see `docs/workflows.md` §7.3).
+- `source_detail` (present in v1.0) was removed — no manual or imported use case required detail beyond the two-value distinction above.
 
 ## 6. Relationships
 
