@@ -3,7 +3,7 @@
 **Document status:** Supplements `Technical_Specifications.md` v1.0
 **Date:** 12 September 2026
 
-This document specifies the detailed, step-by-step behavior of the borrowing lifecycle and catalogue sync workflows, at a level of precision suitable for implementation. It supersedes or extends the following sections of `Technical_Specifications.md`:
+This document specifies the detailed, step-by-step behavior of the borrowing lifecycle, catalogue sync, and reading-history import workflows, at a level of precision suitable for implementation. It supersedes or extends the following sections of `Technical_Specifications.md`:
 
 - §7 (Loan State Machine) — extended with a new transition
 - §10 (Public Borrowing Request) — fully detailed
@@ -11,7 +11,9 @@ This document specifies the detailed, step-by-step behavior of the borrowing lif
 - §12 (Admin Borrowing Workflow) — fully detailed
 - §13 (Long-Loan Attention) — extended into two independent flagging systems
 - §16 (Spreadsheet Synchronisation) — fully detailed
+- §18–19 (Goodreads Import / My Reads) — fully detailed
 - §5.3 (`loan_requests` table) — two new columns required
+- §5.4 (`reads` table) — `source_detail` dropped, `source` converted to enum
 
 Where this document conflicts with `Technical_Specifications.md`, this document takes precedence.
 
@@ -276,10 +278,61 @@ Rows are classified into four categories by comparing the file against the curre
 
 ---
 
-## 7. Open items not covered by this document
+## 7. Goodreads Import Workflow
+
+This extends §18–19 of `Technical_Specifications.md` with precise, decided behaviour.
+
+### 7.1 Trigger and input
+
+- **Manual only.** `Admin → My Reads → Import Goodreads`, CSV file upload.
+- **Row filtering (silent):** only rows where `Exclusive Shelf = read` are considered. All other rows (want-to-read, currently-reading, etc.) are silently excluded before preview — no count shown for these.
+
+### 7.2 Duplicate-import detection
+
+- Keyed on `goodreads_id` (unique in `reads` per the existing index).
+- If a row's `goodreads_id` already exists in `reads` → excluded from the actionable/editable list, shown only as a count under **"Already imported"** in the preview (mirrors the "Unchanged" pattern from spreadsheet sync — informational only, not itself editable or re-appliable).
+
+### 7.3 Catalogue matching
+
+- **Only mechanism:** normalized title + author (lowercase, trim, strip punctuation — no prefix-stripping, no subtitle/edition tolerance; kept deliberately simple since anything uncertain falls through to manual review anyway).
+- **Exactly one match** in `books` → row is auto-linked: `book_id` set, `source = 'Owned'`. Displayed (and eventually stored) `title`/`author` for this row switch to the **`books` table values**, not the Goodreads CSV values.
+- **Zero or multiple matches** → no auto-link. Treated identically (no separate "ambiguous" state) — falls to manual editing in preview (7.4).
+- ISBN/ISBN13 and Goodreads-ID matching against `books` were considered and dropped: `books` does not store ISBN, and Goodreads IDs have no meaning for physical catalogue records. `goodreads_id` is used only for duplicate-import detection (7.2), not catalogue matching.
+
+### 7.4 Preview screen
+
+Two categories shown:
+
+- **To import** — every row that isn't a duplicate, whether auto-matched or not. Each row is individually editable before Apply:
+  - `source`: **Owned / NLB / blank.** Selecting **Owned** (whether it was auto-matched or chosen manually) surfaces a book picker (search by title/author) to link/confirm `book_id` — Owned always requires a linked book, whether reached automatically or manually. Linking a book also switches the row's displayed/stored `title`/`author` to the `books` values.
+  - `rating`: editable (e.g. to revise to a decimal value Goodreads itself wouldn't export).
+  - `notes`: editable; defaults to the Goodreads review text (`My Review`), but can be revised or cleared.
+  - `title`, `author`, `date_read`: **not editable.** Sourced either from the CSV (unmatched/unlinked rows) or from `books` (matched/linked rows).
+- **Already imported** — count only (7.2).
+
+**No draft persistence.** All edits exist only in the browser session for that preview. Navigating away or closing the tab before clicking Apply discards all edits; a fresh CSV upload and re-edit is required to retry. This is an accepted trade-off for a single-sitting workflow.
+
+### 7.5 Apply
+
+- Single click from the preview screen — no separate confirmation (consistent with the one-click pattern used elsewhere).
+- Applies the **current edited state** of each "to import" row (not the raw parsed CSV values) in a single atomic database transaction — all or nothing.
+- On success: summary shown (counts: imported, already imported), returns to the dashboard.
+
+---
+
+## 8. Schema changes from this session (supplementing §1 of this document)
+
+In addition to `approved_at` and `email_delivery_failed` on `loan_requests` (§1), the following changes to `reads` were made during Goodreads-import design and should be reflected in `Technical_Specifications.md`'s data model (§5.4):
+
+- **`reads.source_detail` dropped entirely** (migration 005). On reflection, no manual or imported use case needed anything beyond the three-value `source` distinction below — an always-empty column added complexity with no benefit.
+- **`reads.source` converted to a native Postgres enum**, `public.read_source`, with values `'Owned'` and `'NLB'` (migration 006), consistent with the existing `loan_request_status` enum pattern. Column remains nullable — `NULL` represents the third, unlabeled "other/unknown" bucket (e.g. borrowed from a friend), which was deliberately judged not to need its own value or detail field.
+- Applied migrations so far this session: `004_workflow_columns.sql` (loan_requests columns), `005_drop_source_detail.sql`, `006_read_source_enum.sql`.
+
+---
+
+## 9. Open items not covered by this document
 
 The following remain to be specified separately:
 
-- Goodreads CSV import workflow (§18)
 - Cover upload workflow (§17)
 - Exact visual treatment (colors, spacing) for flag labels and status indicators — deferred to the visual design step
