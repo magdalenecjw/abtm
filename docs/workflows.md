@@ -3,13 +3,14 @@
 **Document status:** Supplements `Technical_Specifications.md` v1.0
 **Date:** 12 September 2026
 
-This document specifies the detailed, step-by-step behavior of the borrowing lifecycle workflows, at a level of precision suitable for implementation. It supersedes or extends the following sections of `Technical_Specifications.md`:
+This document specifies the detailed, step-by-step behavior of the borrowing lifecycle and catalogue sync workflows, at a level of precision suitable for implementation. It supersedes or extends the following sections of `Technical_Specifications.md`:
 
 - §7 (Loan State Machine) — extended with a new transition
 - §10 (Public Borrowing Request) — fully detailed
 - §11 (Borrower Management Link) — fully detailed
 - §12 (Admin Borrowing Workflow) — fully detailed
 - §13 (Long-Loan Attention) — extended into two independent flagging systems
+- §16 (Spreadsheet Synchronisation) — fully detailed
 - §5.3 (`loan_requests` table) — two new columns required
 
 Where this document conflicts with `Technical_Specifications.md`, this document takes precedence.
@@ -231,11 +232,54 @@ All actions below are **immediate on click — no confirmation dialogs**, consis
 
 ---
 
-## 6. Open items not covered by this document
+## 6. Spreadsheet Synchronisation Workflow
+
+This extends §16 of `Technical_Specifications.md` with precise, decided behaviour.
+
+### 6.1 Trigger and input
+
+- **Manual only.** No scheduled/automatic sync. Admin explicitly clicks "Sync" from the admin dashboard.
+- **Input:** a single `.xlsx` file, uploaded through the admin UI. Where the admin maintains this file (Excel, Google Sheets exported to XLSX, Numbers, etc.) is irrelevant to the system — there is no live API connection to any spreadsheet tool.
+- **Expected columns:** `book_id`, `title`, `author`, `genre`, `notes` (optional), `active` (required). `active` values must be the literal text `TRUE`/`FALSE` (case-insensitive on parse) — chosen over `1`/`0` because it's self-documenting and matches Excel's native boolean cell type.
+
+### 6.2 Validation (runs before anything else)
+
+All of the following checks run across the **entire file**, and **all failures are collected and shown together** — not just the first one encountered:
+
+1. Required columns (`book_id`, `title`, `author`, `genre`, `active`) must all be present in the file. Missing → *"Missing required column: `{column}`."*
+2. Every row must have a non-empty value for each required field. Blank → *"Row {N} is missing a value for `{field}`."*
+3. `active` must parse as `TRUE`/`FALSE`. Invalid → *"Row {N}: `active` must be TRUE or FALSE."*
+4. No `book_id` may appear more than once in the file. Duplicate → *"Duplicate `book_id` found: `{book_id}` appears on rows {N} and {M}."*
+
+**If any validation failure exists, the sync is blocked entirely** — no preview is generated, nothing is applied, and the full list of problems is shown so the admin can fix them all in one pass before re-uploading.
+
+### 6.3 Preview (shown only once validation passes)
+
+Rows are classified into four categories by comparing the file against the current `books` table:
+
+| Category | Condition | What's shown |
+|---|---|---|
+| **New** | `book_id` not in DB | `book_id`, title, author, genre |
+| **Updated** | `book_id` exists, one or more fields differ | Field-level diff, old value → new value, for each changed field |
+| **Unchanged** | `book_id` exists, all fields identical | Count only, no per-row detail |
+| **Missing from spreadsheet** | `book_id` exists in DB but not in this upload | List of `book_id`s — **informational warning only, no action attached** |
+
+**Handling "sold" or otherwise removed books:** there is no hard-delete path (the schema's `on delete restrict` foreign keys from `book_covers` and `loan_requests` intentionally prevent it, preserving lending history per §28). A book that is no longer part of the collection is deactivated by setting `active = FALSE` **in the spreadsheet row** and re-uploading — this surfaces as a normal entry in the **Updated** diff (`active: TRUE → FALSE`), not as a "missing" row. The "missing" category is reserved purely for `book_id`s that unexpectedly disappeared from the file (e.g. an accidentally deleted spreadsheet row) — it exists to catch mistakes, not to represent an intended action.
+
+### 6.4 Apply
+
+- One click from the preview screen. **No separate confirmation step** — the preview itself serves that purpose, consistent with the one-click, no-confirmation pattern used throughout the admin workflows (§5.4).
+- Server re-validates the same file server-side before applying (a formality/safety net given this is a single-admin, same-session action, not a real concurrency concern).
+- All changes (creates and updates) are applied in a **single atomic database transaction** — either everything succeeds, or nothing is applied and the catalogue is left untouched.
+- On success: a summary is shown (counts of new / updated / unchanged / missing), then returns to the dashboard.
+- The "missing from spreadsheet" warning is **transient** — shown once on this result screen and not persisted or surfaced again later (e.g. not revisited on next login or next sync).
+
+---
+
+## 7. Open items not covered by this document
 
 The following remain to be specified separately:
 
 - Goodreads CSV import workflow (§18)
-- Spreadsheet synchronisation workflow (§16)
 - Cover upload workflow (§17)
 - Exact visual treatment (colors, spacing) for flag labels and status indicators — deferred to the visual design step
