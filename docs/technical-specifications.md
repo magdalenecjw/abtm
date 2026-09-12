@@ -1,8 +1,21 @@
 # Automated Book Teller Machine — Formal Technical Specification
 
 **Document status:** Development-ready specification  
-**Version:** 1.0  
+**Version:** 1.1  
 **Date:** 12 September 2026
+
+## Changelog (v1.0 → v1.1)
+
+The following sections were revised after a detailed workflow design pass (see `docs/workflows.md` for the full step-by-step reasoning):
+
+- **§5.3** (`loan_requests`) — two new columns: `approved_at`, `email_delivery_failed`.
+- **§7** (Loan State Machine) — added `APPROVED → CANCELLED` as a valid admin-only transition (e.g. borrower no-show after approval).
+- **§10** (Public Borrowing Request) — fully detailed: passcode gate mechanics, rate limiting, verification-token handoff, field constraints, duplicate-submission guard, server-side submission order.
+- **§11** (Borrower Management Link) — fully detailed: link expiry policy, per-status views, cancel action behaviour.
+- **§12** (Admin Borrowing Workflow) — fully detailed: dashboard scope/filters, and precise behaviour for approve, cancel, mark collected, mark returned, and regenerate-link actions.
+- **§13** (Long-Loan Attention) — split into two independent flagging systems ("not yet collected" and graduated loan-duration labels), replacing the single 30-day flag.
+
+All other sections are unchanged from v1.0.
 
 ## 1. Purpose
 
@@ -153,6 +166,8 @@ Represents the complete borrowing-request lifecycle.
 | `collection_date` | DATE | NULL | Actual collection date |
 | `return_date` | DATE | NULL | Actual return date |
 | `management_token_hash` | TEXT | NOT NULL | Hash of secret management token |
+| `approved_at` | TIMESTAMPTZ | NULL | Set when status transitions to `APPROVED`. Anchors the "not yet collected" attention flag (§13). |
+| `email_delivery_failed` | BOOLEAN | NOT NULL, default FALSE | Set if the management-link email fails to send at request creation. Surfaced to admin; does not block request creation. |
 | `created_at` | TIMESTAMPTZ | NOT NULL | Creation timestamp |
 | `updated_at` | TIMESTAMPTZ | NOT NULL | Last update |
 
@@ -205,8 +220,10 @@ There is intentionally no separate `loans` table. `loan_requests` records the co
 PENDING
    │
    ├───► APPROVED ───► RETURNED
+   │         │
+   │         └───► CANCELLED   (admin-only)
    │
-   └───► CANCELLED
+   └───► CANCELLED   (borrower or admin)
 ```
 
 Valid transitions:
@@ -217,6 +234,9 @@ Valid transitions:
 | PENDING | Borrower cancels | CANCELLED |
 | PENDING | Admin cancels | CANCELLED |
 | APPROVED | Admin records return | RETURNED |
+| APPROVED | Admin cancels (e.g. borrower no-show after approval) | CANCELLED |
+
+`CANCELLED` does not distinguish whether it was reached from `PENDING` or `APPROVED`, nor who initiated it — the cause is not recorded.
 
 Other transitions are invalid.
 
@@ -258,108 +278,134 @@ When A returns, B remains pending. The admin manually decides whether to approve
 
 ## 10. Public Borrowing Request
 
-The request form asks for:
-- Borrow passcode
-- Real name
-- Nickname
-- Email
+> Full step-by-step detail, including rationale for each decision, is in `docs/workflows.md` §3. This section summarizes the agreed behaviour.
 
-Server-side processing:
+**Entry point:** clicking "Request to borrow" on a book's details modal opens the passcode popup immediately. No availability re-check happens at click time — the book's true status is authoritatively re-validated only at final submission.
 
-1. Validate borrow passcode.
-2. Validate required fields.
-3. Confirm the book exists and is active.
-4. Create a `PENDING` request.
-5. Generate a cryptographically secure management token.
-6. Store only its hash.
-7. Email the management link to the supplied email.
-8. Show confirmation.
+**Passcode gate (shown every time — no session-wide unlock):**
+- Explicit submit button; passcode validated only on submit, not as-you-type.
+- Incorrect passcode → inline error, retry allowed.
+- Rate limiting: 5 incorrect attempts (tracked by IP) → 24-hour lockout, vague message (no countdown shown).
+- Correct passcode → server issues a short-lived (30 minute), single-use, opaque verification token. The client stores only this token, never the raw passcode.
+
+**Request form** (shown after passcode verification; the verification token rides along invisibly):
+- Real name: 3–25 characters, letters and spaces only.
+- Nickname: 3–25 characters, letters and spaces only; publicly displayed while the book is on loan.
+- Email: valid format, validated on blur.
+- If the verification token expires before submission, the visitor is bounced back to the passcode popup, but their already-typed field values are preserved client-side.
+
+**Duplicate submissions are allowed** (the same visitor may hold multiple pending requests for the same book), but a **5-minute duplicate guard** (keyed on `book_id` + `email`) blocks accidental rapid double-submission specifically.
+
+**Server-side submission order:**
+
+1. Validate verification token (exists, unexpired, unused) → if invalid, reject and return to passcode popup.
+2. Validate field formats.
+3. Check the 5-minute duplicate guard.
+4. Confirm the book exists and `active = TRUE` → if not: *"This book is no longer available in the catalogue."*
+5. Consume the verification token (only now — so a validation failure in steps 2–4 doesn't cost the visitor their passcode verification).
+6. Create the `PENDING` request.
+7. Generate a cryptographically secure management token; store only its hash.
+8. Email the management link. **Delivery failure is non-fatal** — the request stands; set `email_delivery_failed = TRUE` on the row so admin can follow up (§12).
+9. Show confirmation (queue position + cancel action — same view as §11).
 
 The email address must not be persisted to PostgreSQL.
 
 ## 11. Borrower Management Link
 
+> Full detail in `docs/workflows.md` §4.
+
 Conceptually:
 
 `/request/manage/{token}`
 
-The token is the credential. Do not put email addresses in the URL.
+The token is the credential. Do not put email addresses in the URL. **The link does not expire** — it remains valid as long as the request exists and the token hasn't been superseded by an admin regeneration (§12). There is no borrower-initiated recovery if the email is lost; admin can regenerate a link and send it manually (e.g. by text).
 
-The management page shows:
-- Book title
-- Request status
-- Request date
-- Number of requests ahead
-- Queue position / "You are next in line"
-- Relevant current status
-- Cancel action while pending
+The page always re-fetches current state on load and after any action — it never trusts cached or optimistic client-side state, which cleanly handles races where status changes between page load and an action.
+
+**Content shown, by status:**
+
+| Status | Content | Actions |
+|---|---|---|
+| PENDING | Queue position / "You are next in line" | Cancel |
+| APPROVED | "Approved" (no further detail) | None |
+| RETURNED | "This request is no longer active" | None |
+| CANCELLED | "This request is no longer active" | None |
 
 It must not expose:
 - Other borrowers' real names
 - Email addresses
 - Internal database details
-- Administrative information
+- Administrative information (including collection/return dates, which are admin-only)
 
-Pending borrowers can cancel their own request:
+**Cancel** (PENDING only): immediate on click, no confirmation. Server re-checks the request is still `PENDING` at the moment of the click before applying; if it's changed in the meantime, the page re-renders showing the current true status rather than erroring.
 
 `PENDING → CANCELLED`
 
-Queue position recalculates automatically.
+Queue position recalculates automatically for remaining pending requests.
 
 ## 12. Admin Borrowing Workflow
 
-The Requests dashboard should show:
+> Full detail in `docs/workflows.md` §5.
 
-| Book | Requester | Requested | Action |
-|---|---|---|---|
-| Dune | Alex | 12 Sep | Approve |
-| Piranesi | Sarah | 10 Sep | Approve |
+**Dashboard:** shows all active requests (`PENDING` + `APPROVED`) by default, with a "Show history" toggle to reveal `RETURNED`/`CANCELLED`. Filterable by status (checkboxes) and by attention flag (independent checkboxes, §13). Basic title/book text search is supported. Requests with `email_delivery_failed = TRUE` are visually flagged for admin follow-up.
+
+All actions below are **immediate on click — no confirmation dialogs** — and each re-checks the request's current status server-side before applying, to guard against stale-dashboard races.
 
 ### Approve
 
 `PENDING → APPROVED`
 
-The book becomes **On loan**. The request's original `requested_at` remains unchanged.
+Re-checks the request is still `PENDING` and that the book has no other `APPROVED` request (a database constraint is the final safety net regardless — §25). On success, sets `approved_at = now()` in addition to the status change. The request's original `requested_at` remains unchanged. On failure: *"This request could not be approved because the book's status has changed. Please refresh the requests list."*
 
 ### Cancel
 
-`PENDING → CANCELLED`
+`PENDING → CANCELLED` or `APPROVED → CANCELLED`
 
-The request leaves the queue.
+The `APPROVED → CANCELLED` transition is admin-only and intended for cases such as a borrower not collecting after approval. Neither the trigger state nor the cause is recorded — both collapse to the same `CANCELLED` status.
 
 ### Collection
 
-Admin records the actual collection date.
+Admin records the collection date via a date picker (not restricted to "today," to support backdated logging). **Editable after being set.**
 
 ### Return
 
 `APPROVED → RETURNED`
 
-Admin records the actual return date.
+Single action ("Mark returned") stamps both `status = RETURNED` and `return_date = now()` together. **Not editable after being set** — acceptable since exact return timing has no downstream effect (the next pending request's approval remains a manual admin decision regardless).
 
 The next pending request is NOT automatically approved.
 
-## 13. Long-Loan Attention
+### Regenerate management link
 
-There is no formal overdue state.
+Available for `PENDING`/`APPROVED` requests only (hidden for terminal states). Generates a new raw management token, stores only its hash (overwriting the old one — the old link becomes invalid immediately), and displays the new raw link once on screen for admin to copy and send manually. This exists because the stored token is a one-way hash — admin cannot retrieve a lost link directly, only issue a new one.
 
-A loan is flagged for admin attention when:
+## 13. Attention Flags
 
-`current_date - collection_date > 30 days`
+> Full detail in `docs/workflows.md` §5.3. This replaces the single 30-day "Long-Loan Attention" flag from v1.0 with two independent systems.
 
-If collection date is missing, use approval date as the fallback.
+There is no formal overdue state, and no automated borrower notification is sent for either flag below. Both apply only to `APPROVED` requests and are mutually exclusive by construction.
 
-Display:
+**Not yet collected** — `collection_date IS NULL` and 14+ days have passed since `approved_at`. Labelled **"Not yet collected."**
 
-**Needs attention**
+**Loan duration** — once `collection_date` is set, graduated by days elapsed since that date:
 
-not "Overdue".
+| Days since collection | Label |
+|---|---|
+| 0–29 | *(none — normal)* |
+| 30–89 | **Needs attention** |
+| 90–179 | **Long loan** |
+| 180+ | **Very long loan** |
+
+Distinction between levels is conveyed through colour intensity (defined in the visual design step), not numeric "tier" labels.
 
 Configuration:
 
-`loan_attention_threshold_days = 30`
-
-No automated borrower notification is required.
+```text
+loan_attention_threshold_days = 30      -- "Needs attention"
+loan_long_threshold_days = 90           -- "Long loan"
+loan_very_long_threshold_days = 180     -- "Very long loan"
+loan_not_collected_threshold_days = 14  -- "Not yet collected"
+```
 
 ## 14. Public Catalogue UI
 
