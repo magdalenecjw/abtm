@@ -1,7 +1,7 @@
 # Automated Book Teller Machine — Formal Technical Specification
 
 **Document status:** Development-ready specification  
-**Version:** 1.2  
+**Version:** 1.3  
 **Date:** 12 September 2026
 
 ## Changelog
@@ -18,6 +18,16 @@
 - **§16** (Spreadsheet Synchronisation) — fully detailed: manual XLSX upload, validation rules, preview categories (new/updated-with-diff/unchanged/missing), atomic apply. See `docs/workflows.md` §6.
 - **§18–19** (Goodreads Import / My Reads) — fully detailed: shelf filtering, duplicate detection via `goodreads_id`, title+author catalogue matching, editable preview, atomic apply. See `docs/workflows.md` §7.
 - **§5.4** (`reads`) — `source_detail` column dropped entirely; `source` converted from free-text to a native enum (`public.read_source`: `Owned`, `NLB`, nullable for "other/unknown").
+
+**v1.2 → v1.3** — email delivery removed from scope entirely:
+- The project has no owned domain, which is a hard requirement for verifying a sending domain with any transactional email provider. Rather than emailing the management link, it is now shown once on the post-submission confirmation screen, which the borrower must save themselves (e.g. via a "copy link" action and a persistent on-screen warning).
+- **Email is no longer collected at all** — not just "not stored," but never asked for. The public borrowing request form now collects only real name and nickname.
+- **§5.3** (`loan_requests`) — `email_delivery_failed` column dropped (migration 007); it flagged a failure mode that can no longer occur.
+- **§10** — email field and its on-blur validation removed from the request form; the duplicate-submission guard is now keyed on `book_id` + real name (was `book_id` + email).
+- **§11** — the borrower management link is now shown exactly once, on the confirmation screen; there is no "resend" path at all (previously: no borrower-initiated recovery, but admin could regenerate and re-send by email — admin can still regenerate a link and share it manually, e.g. by text, but there is no email step anywhere in the flow).
+- **§12** — the "email delivery failures" admin dashboard flag/box is removed. The dashboard's 8th stat box reverts to "Available" (previously removed as "not very important," reinstated to fill the slot).
+- **§3** (Technical Architecture) — "Transactional email provider" removed from the architecture table; no external email service is required for v1.
+- This may be revisited in the future if the project acquires a domain and the friend group's borrowing volume grows enough to justify it.
 
 Full step-by-step reasoning for all workflow decisions lives in `docs/workflows.md`, which this document points to rather than duplicates.
 
@@ -46,7 +56,7 @@ The application should remain intentionally lightweight. It is a personal/friend
 - View current borrower nickname and loan start date when a book is on loan
 - Submit borrowing requests
 - View request position
-- Receive a private request-management link by email
+- Receive a private request-management link, shown once on the confirmation screen after submitting a request
 - Cancel a pending request through the management link
 - View current queue status through the management link
 
@@ -96,7 +106,6 @@ Version 1 will NOT include:
 | File storage | Supabase Storage |
 | Catalogue source | Library spreadsheet |
 | Reading-history import | Goodreads CSV |
-| Email delivery | Transactional email provider |
 
 The application should be a single Next.js application containing both the public experience and protected admin interface.
 
@@ -171,13 +180,10 @@ Represents the complete borrowing-request lifecycle.
 | `return_date` | DATE | NULL | Actual return date |
 | `management_token_hash` | TEXT | NOT NULL | Hash of secret management token |
 | `approved_at` | TIMESTAMPTZ | NULL | Set when status transitions to `APPROVED`. Anchors the "not yet collected" attention flag (§13). |
-| `email_delivery_failed` | BOOLEAN | NOT NULL, default FALSE | Set if the management-link email fails to send at request creation. Surfaced to admin; does not block request creation. |
 | `created_at` | TIMESTAMPTZ | NOT NULL | Creation timestamp |
 | `updated_at` | TIMESTAMPTZ | NOT NULL | Last update |
 
-**Privacy requirement:** borrower email MUST NOT be stored in this table.
-
-The email is used transiently to send the management link. The raw management token should not be stored; store a cryptographic hash.
+**Privacy requirement:** the borrower's email address is not collected anywhere in the application — not just "not stored." The management link is shown once on the post-submission confirmation screen instead of being emailed (see §10, §11). The raw management token should not be stored; store a cryptographic hash.
 
 ### 5.4 `reads`
 
@@ -296,10 +302,10 @@ When A returns, B remains pending. The admin manually decides whether to approve
 **Request form** (shown after passcode verification; the verification token rides along invisibly):
 - Real name: 3–25 characters, letters and spaces only.
 - Nickname: 3–25 characters, letters and spaces only; publicly displayed while the book is on loan.
-- Email: valid format, validated on blur.
+- No email field — email is not collected anywhere in this flow (see v1.3 changelog: no owned domain to verify with an email provider).
 - If the verification token expires before submission, the visitor is bounced back to the passcode popup, but their already-typed field values are preserved client-side.
 
-**Duplicate submissions are allowed** (the same visitor may hold multiple pending requests for the same book), but a **5-minute duplicate guard** (keyed on `book_id` + `email`) blocks accidental rapid double-submission specifically.
+**Duplicate submissions are allowed** (the same visitor may hold multiple pending requests for the same book), but a **5-minute duplicate guard** (keyed on `book_id` + `real_name`) blocks accidental rapid double-submission specifically.
 
 **Server-side submission order:**
 
@@ -310,10 +316,7 @@ When A returns, B remains pending. The admin manually decides whether to approve
 5. Consume the verification token (only now — so a validation failure in steps 2–4 doesn't cost the visitor their passcode verification).
 6. Create the `PENDING` request.
 7. Generate a cryptographically secure management token; store only its hash.
-8. Email the management link. **Delivery failure is non-fatal** — the request stands; set `email_delivery_failed = TRUE` on the row so admin can follow up (§12).
-9. Show confirmation (queue position + cancel action — same view as §11).
-
-The email address must not be persisted to PostgreSQL.
+8. Show confirmation (queue position + cancel action + the management link itself — see §11).
 
 ## 11. Borrower Management Link
 
@@ -323,7 +326,13 @@ Conceptually:
 
 `/request/manage/{token}`
 
-The token is the credential. Do not put email addresses in the URL. **The link does not expire** — it remains valid as long as the request exists and the token hasn't been superseded by an admin regeneration (§12). There is no borrower-initiated recovery if the email is lost; admin can regenerate a link and send it manually (e.g. by text).
+The token is the credential. **The link does not expire** — it remains valid as long as the request exists and the token hasn't been superseded by an admin regeneration (§12).
+
+**The link is shown to the borrower exactly once** — on the confirmation screen immediately after submitting a request (there is no email step to deliver it a second way). This screen must:
+- Display a persistent, hard-to-miss banner explaining the link won't be shown again.
+- Provide a one-click "Copy link" action.
+
+If the borrower loses the link, there is no self-service recovery; they must contact the admin directly (outside the system), who can regenerate a new link for that request and share it manually (e.g. by text) — see §12.
 
 The page always re-fetches current state on load and after any action — it never trusts cached or optimistic client-side state, which cleanly handles races where status changes between page load and an action.
 
@@ -338,7 +347,6 @@ The page always re-fetches current state on load and after any action — it nev
 
 It must not expose:
 - Other borrowers' real names
-- Email addresses
 - Internal database details
 - Administrative information (including collection/return dates, which are admin-only)
 
@@ -352,7 +360,7 @@ Queue position recalculates automatically for remaining pending requests.
 
 > Full detail in `docs/workflows.md` §5.
 
-**Dashboard:** shows all active requests (`PENDING` + `APPROVED`) by default, with a "Show history" toggle to reveal `RETURNED`/`CANCELLED`. Filterable by status (checkboxes) and by attention flag (independent checkboxes, §13). Basic title/book text search is supported. Requests with `email_delivery_failed = TRUE` are visually flagged for admin follow-up.
+**Dashboard:** shows all active requests (`PENDING` + `APPROVED`) by default, with a "Show history" toggle to reveal `RETURNED`/`CANCELLED`. Filterable by status (checkboxes) and by attention flag (independent checkboxes, §13). Basic title/book text search is supported.
 
 All actions below are **immediate on click — no confirmation dialogs** — and each re-checks the request's current status server-side before applying, to guard against stale-dashboard races.
 
@@ -459,7 +467,7 @@ On loan:
 - Shows borrower nickname
 - Shows loaned-since date
 
-Never display the borrower's real name or email publicly.
+Never display the borrower's real name publicly.
 
 ## 16. Spreadsheet Synchronisation
 
@@ -598,7 +606,7 @@ The implementation must:
 - Use safe parameterised database access.
 - Enforce admin authorisation server-side.
 - Protect management tokens.
-- Never persist borrower email.
+- Do not collect the borrower's email address anywhere in the application.
 - Never expose real names publicly.
 - Restrict Supabase Storage access appropriately.
 - Validate uploaded images.
@@ -714,10 +722,8 @@ Stored:
 - Borrowing request history
 - Collection/return dates
 
-Not stored:
-- Borrower email address
-
-The transactional email provider may nevertheless process or retain the email under its own policies.
+Not collected at all:
+- Borrower email address — the application never asks for it (see v1.3 changelog). This is a stronger guarantee than "not stored," since there is no third-party email provider involved either.
 
 ## 30. Configuration
 
@@ -734,8 +740,6 @@ NEXT_PUBLIC_SUPABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
 SUPABASE_ANON_KEY
 BORROW_PASSCODE
-EMAIL_PROVIDER_API_KEY
-EMAIL_FROM_ADDRESS
 ```
 
 Exact names may change during implementation.
@@ -828,8 +832,8 @@ Inactive books cannot receive new borrowing requests.
 - [ ] Public user can submit a request using the borrow passcode.
 - [ ] Real name is stored privately.
 - [ ] Nickname is stored for public display.
-- [ ] Email is not stored in PostgreSQL.
-- [ ] Secure management link is emailed.
+- [ ] No email address field appears anywhere in the borrowing flow.
+- [ ] Secure management link is shown once on the confirmation screen, with a persistent warning and a copy-link action.
 - [ ] Management link shows request status and queue position.
 - [ ] Pending borrower can cancel.
 - [ ] Admin can approve.
@@ -858,7 +862,7 @@ Inactive books cannot receive new borrowing requests.
 ### Security
 - [ ] Admin pages require authentication.
 - [ ] Public users cannot access private borrower information.
-- [ ] Borrower email is not persisted.
+- [ ] No email address is collected anywhere in the application.
 - [ ] Management tokens are securely generated.
 - [ ] Raw tokens are not logged.
 - [ ] Borrow passcode is not exposed client-side.
@@ -896,7 +900,7 @@ Inactive books cannot receive new borrowing requests.
 - Loan request records
 - Queue calculation
 - Management tokens
-- Email delivery
+- Confirmation screen (link display, copy-link action)
 - Borrower management page
 - Cancellation
 - Admin requests dashboard
@@ -974,8 +978,7 @@ PUBLIC
          ├── Borrow passcode
          ├── Real name
          ├── Nickname
-         ├── Email
-         └── Receive secret management link
+         └── Secret management link shown once on confirmation
                     │
                     └── View queue / cancel pending request
 
