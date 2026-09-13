@@ -550,15 +550,23 @@ Use `goodreads_id` where available to prevent duplicate imports, while preservin
 One row equals one reading event.
 
 Supported fields:
-- Rating
-- Notes
-- Date read
-- Source
-- Source detail
+
+* Rating
+* Notes
+* Date read
+* Source
 
 The section can contain both owned and non-owned books.
 
 When an owned book is linked via `book_id`, catalogue information can be reused. Non-owned books retain their own title/author/cover/genre data.
+
+The `source` field uses the `public.read_source` enum:
+
+* `Owned` — the book is from the owner's physical library
+* `NLB` — the book was obtained from the National Library Board
+* `NULL` — another or unknown source, such as a book borrowed from a friend
+
+There is no separate `source_detail` field.
 
 ## 20. Admin Dashboard
 
