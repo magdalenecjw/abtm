@@ -49,11 +49,8 @@ The borrowing flow is:
 1. Enter a borrow passcode.
 2. Provide a real name.
 3. Provide a nickname for public display.
-4. Provide an email address.
-5. Submit a borrowing request.
-6. Receive a private management link by email.
-
-The email address is used to deliver the management link but is **not stored in the application's database**.
+4. Submit a borrowing request.
+5. Receive a private management link.
 
 Borrowing is manually managed by the library owner. Requests move through:
 
