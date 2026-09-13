@@ -12,6 +12,7 @@ This document specifies the detailed, step-by-step behavior of the borrowing lif
 - §13 (Long-Loan Attention) — extended into two independent flagging systems
 - §16 (Spreadsheet Synchronisation) — fully detailed
 - §18–19 (Goodreads Import / My Reads) — fully detailed
+- §17 (Cover Management) — fully detailed
 - §5.3 (`loan_requests` table) — two new columns required
 - §5.4 (`reads` table) — `source_detail` dropped, `source` converted to enum
 
@@ -320,7 +321,48 @@ Two categories shown:
 
 ---
 
-## 8. Schema changes from this session (supplementing §1 of this document)
+## 8. Cover Upload Workflow
+
+This extends §17 of `Technical_Specifications.md` with precise, decided behaviour.
+
+### 8.1 Trigger and mechanism
+
+There is **one unified upload mechanism**, not two separate "single" and "bulk" flows:
+
+- Usable from a specific book's edit page (drop a single file), or from a general admin "Covers" screen (drop any number of files at once).
+- Both cases go through the identical matching, validation, preview, and apply logic below — a single-file upload is simply the one-file case of the general flow.
+
+### 8.2 File matching
+
+- The filename (excluding extension) must **exactly match** an existing `book_id` (case-sensitive) — e.g. `BK0001.jpg` matches `book_id = 'BK0001'`.
+- No fuzzy or case-insensitive matching.
+
+### 8.3 Validation (per file)
+
+- **Accepted input formats:** JPEG, PNG, WebP, HEIC.
+- **Max upload size:** 5MB per file.
+- HEIC is accepted as input despite inconsistent browser support for *display*, because the raw upload is never what gets stored or served (see 8.5) — it's always decoded and re-processed first.
+
+### 8.4 Preview (before anything is applied)
+
+Uploaded files are classified into three categories, each shown with a thumbnail of the incoming image:
+
+| Category | Condition |
+|---|---|
+| **Matched — new cover** | `book_id` found, book currently has no cover |
+| **Matched — replacement** | `book_id` found, book already has a cover — will overwrite the existing image. Called out distinctly since this is destructive. |
+| **Unmatched** | Filename doesn't correspond to any existing `book_id` — flagged, not applied, no action taken |
+
+### 8.5 Apply
+
+- Single click from the preview screen — no separate confirmation.
+- Every accepted file is **resized** (longest edge capped at ~1200px) and **re-encoded to a consistent web format** (e.g. WebP) before storage — the raw uploaded file is never what's persisted to Supabase Storage or served publicly.
+- **Per-file independence** — each file's Storage upload + `book_covers` insert/update succeeds or fails on its own. A failure partway through a batch does not roll back or block the remaining files. (This is a deliberate departure from the atomic-transaction pattern used for spreadsheet sync and Goodreads import: those are pure database writes wrappable in a single Postgres transaction, whereas cover upload also involves external Storage writes that can't be rolled back the same way — and a failed cover is low-stakes compared to a bad catalogue sync.)
+- Result screen shows a per-file outcome: succeeded, or failed with a reason (e.g. "file too large," "unsupported format").
+
+---
+
+## 9. Schema changes from this session (supplementing §1 of this document)
 
 In addition to `approved_at` and `email_delivery_failed` on `loan_requests` (§1), the following changes to `reads` were made during Goodreads-import design and should be reflected in `Technical_Specifications.md`'s data model (§5.4):
 
@@ -330,9 +372,8 @@ In addition to `approved_at` and `email_delivery_failed` on `loan_requests` (§1
 
 ---
 
-## 9. Open items not covered by this document
+## 10. Open items not covered by this document
 
 The following remain to be specified separately:
 
-- Cover upload workflow (§17)
 - Exact visual treatment (colors, spacing) for flag labels and status indicators — deferred to the visual design step
