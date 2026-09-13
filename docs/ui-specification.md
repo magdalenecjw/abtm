@@ -65,23 +65,22 @@ My Reads
   ├─ Reading list
   └─ Import Goodreads
 ```
-
 ### 2.2 Dashboard — content
 
-Eight clickable stat boxes, laid out two rows of four. Each box is both a number and a navigation shortcut into the relevant filtered screen — there are no separate content sections beyond these eight boxes (a deliberate simplification versus the original §20 sketch, which proposed a stat grid *plus* separate list sections).
+Eight clickable stat boxes, laid out two rows of four. Each box is both a number and a navigation shortcut into the relevant filtered screen — there are no separate content sections beyond these eight boxes (a deliberate simplification versus the original §20 sketch, which proposed a stat grid plus separate list sections).
 
-| # | Box | Links to |
-|---|---|---|
-| 1 | Total books | Books list |
-| 2 | Checked out | Books list, filtered to checked out |
-| 3 | On loan | Books list, filtered to on loan |
-| 4 | Pending requests | Requests, filtered to Pending |
-| 5 | Not yet collected | Requests, filtered to that flag |
-| 6 | Long loan *(combines the "Needs attention," "Long loan," and "Very long loan" tiers from `docs/workflows.md` §5.3 into one dashboard count — the three-tier breakdown with its own colour grading still exists on the Requests screen itself)* | Requests, filtered to any of the three flags |
-| 7 | Email delivery failures | Requests, filtered to `email_delivery_failed = TRUE` |
-| 8 | Total reads | My Reads admin list |
+| # | Box                                                                                                                                                                                                                                            | Links to                                                   |
+| - | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| 1 | Total books                                                                                                                                                                                                                                    | Books list                                                 |
+| 2 | Available                                                                                                                                                                                                                                      | Books list, filtered to Available                          |
+| 3 | Checked out                                                                                                                                                                                                                                    | Books list, filtered to Checked out                        |
+| 4 | On loan                                                                                                                                                                                                                                        | Books list, filtered to On loan                            |
+| 5 | Pending requests                                                                                                                                                                                                                               | Requests, filtered to Pending                              |
+| 6 | Not yet collected                                                                                                                                                                                                                              | Requests, filtered to that flag                            |
+| 7 | Long loan *(combines the "Needs attention," "Long loan," and "Very long loan" tiers from `docs/workflows.md` §5.3 into one dashboard count — the three-tier breakdown with its own colour grading still exists on the Requests screen itself)* | Requests, filtered to any of the three loan-duration flags |
+| 8 | Total reads                                                                                                                                                                                                                                    | My Reads admin list                                        |
 
-Note: "Available" was deliberately excluded from the dashboard — not important enough for an at-a-glance box, browsable via the Books list instead.
+**Note:** "Available" is included as a dashboard stat because it provides a useful at-a-glance view of the catalogue's current availability. The dashboard does not include any email-delivery statistic because email delivery is no longer part of version 1. The borrowing flow does not collect email addresses, and no transactional email service is used.
 
 ### 2.3 Requests — content
 
