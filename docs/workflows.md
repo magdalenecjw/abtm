@@ -1,6 +1,6 @@
 # Automated Book Teller Machine — Workflows
 
-**Document status:** Supplements `Technical_Specifications.md` v1.0
+**Document status:** Supplements `Technical_Specifications.md` v1.3
 **Date:** 12 September 2026
 
 This document specifies the detailed, step-by-step behavior of the borrowing lifecycle, catalogue sync, and reading-history import workflows, at a level of precision suitable for implementation. It supersedes or extends the following sections of `Technical_Specifications.md`:
@@ -22,14 +22,15 @@ Where this document conflicts with `Technical_Specifications.md`, this document 
 
 ## 1. Schema changes required
 
-Two columns must be added to `loan_requests` beyond what is defined in `001_initial_schema.sql`:
+One column must be added to `loan_requests` beyond what is defined in `001_initial_schema.sql`:
 
 | Field | Type | Constraints | Description |
 |---|---|---|---|
 | `approved_at` | TIMESTAMPTZ | NULL | Set when status transitions to `APPROVED`. Used as the anchor for the "not yet collected" flag. |
-| `email_delivery_failed` | BOOLEAN | NOT NULL, default FALSE | Set if the management-link email fails to send at request creation. Surfaced to admin; does not block request creation. |
 
-These should be added via a new migration (e.g. `004_workflow_columns.sql`) before implementation begins.
+This should be added via a migration (`004_workflow_columns.sql`) before implementation begins.
+
+*Note: an earlier version of this migration also added `email_delivery_failed`. That column was dropped in migration 007 once email delivery was removed from scope entirely — see §3.5 and the "no owned domain" note there.*
 
 ---
 
@@ -92,34 +93,39 @@ Shown after successful passcode verification. The token from 3.2 is carried invi
 |---|---|---|
 | Real name | 3–25 characters, letters and spaces only (no punctuation) | On submit |
 | Nickname | 3–25 characters, letters and spaces only (no punctuation); publicly displayed while book is on loan | On submit |
-| Email | Valid email format | On blur |
 
-**Token expiry while filling the form:** If the verification token expires (30 min) or is otherwise invalid by the time the visitor submits, the server rejects the submission and the client returns to the passcode popup (3.2). Whatever the visitor had already typed into real name / nickname / email is **preserved client-side** so they don't need to retype it after re-verifying the passcode.
+*No email field.* Email is not collected anywhere in this flow — the project has no owned domain, which is a hard requirement for verifying a sending domain with any transactional email provider. The management link is instead shown once on the confirmation screen (3.5) rather than emailed. This may be revisited if the project acquires a domain in future.
+
+**Token expiry while filling the form:** If the verification token expires (30 min) or is otherwise invalid by the time the visitor submits, the server rejects the submission and the client returns to the passcode popup (3.2). Whatever the visitor had already typed into real name / nickname is **preserved client-side** so they don't need to retype it after re-verifying the passcode.
 
 **Duplicate submissions are allowed** — the same visitor may hold multiple pending requests for the same book (each counted independently in the queue). To prevent accidental rapid double-submission specifically (double-clicks, page refresh, back-button resubmits):
 
-- **Duplicate guard:** if a request for the same `book_id` + `email` was created within the last **5 minutes**, reject the new submission with a message such as "You've just submitted a request for this book. Please check your email."
-- Beyond this 5-minute window, a second genuine request for the same book/email is permitted. The borrower can cancel any accidental extras via their management link.
+- **Duplicate guard:** if a request for the same `book_id` + `real_name` was created within the last **5 minutes**, reject the new submission with a message such as "You've just submitted a request for this book. Check your confirmation screen or contact the library owner if you've lost your link."
+- Beyond this 5-minute window, a second genuine request for the same book/real name is permitted. The borrower can cancel any accidental extras via their management link.
 
 ### 3.4 Server-side submission sequence
 
 Executed in this exact order on final form submission:
 
-1. Receive: verification token, real name, nickname, email, book reference.
+1. Receive: verification token, real name, nickname, book reference.
 2. Validate verification token — exists, unexpired, unused. If invalid → reject; client bounces to passcode popup (3.2), form fields preserved.
 3. Validate field formats (3.3 table). If invalid → reject with field-level errors.
-4. Duplicate guard check (same `book_id` + `email` within last 5 minutes) → reject if matched.
+4. Duplicate guard check (same `book_id` + `real_name` within last 5 minutes) → reject if matched.
 5. Confirm the book still exists and `active = TRUE` → if not, reject with **"This book is no longer available in the catalogue."**
 6. **Consume the verification token** (mark used) — only now, after all validation has passed. This means a visitor who fails on field validation or the duplicate guard does not need to re-enter the passcode; they can fix the issue and resubmit with the same still-valid token.
 7. Create the `loan_requests` row with `status = PENDING`.
-8. Generate a cryptographically secure management token; store only its hash (`management_token_hash`). The raw value is never persisted.
-9. Send the management-link email to the supplied address.
-   - **If email delivery fails:** this is non-fatal. The request stands as created. Set `email_delivery_failed = TRUE` on the row so it is surfaced to admin (see 5.1). The borrower is not shown any error related to this — their confirmation screen (3.5) still displays normally, since they reach it via redirect, not via the email.
-10. Return confirmation data (queue position, cancel action) to the client.
+8. Generate a cryptographically secure management token; store only its hash (`management_token_hash`). The raw value is never persisted anywhere except transiently to display it once (step 9).
+9. Return confirmation data to the client: queue position, cancel action, and the raw management link itself (this is the only time the raw link is ever available — see 3.5 and §4.1).
 
 ### 3.5 Confirmation screen
 
-Shown immediately after successful submission. This is the **same view/component** used for the borrower management link (Section 4) — see 4.3 for its exact content by state. At the moment of first display, the request is always `PENDING`, so it shows queue position and a cancel action.
+Shown immediately after successful submission. This is the **same view/component** used for the borrower management link (Section 4) — see 4.3 for its exact content by state — with one addition specific to this first view: since there is no email to deliver the link a second way, this screen is the **only** place the borrower will ever see their management link.
+
+This screen must include:
+- A **persistent banner** (not a dismissible toast) stating the link won't be shown again and that losing it means contacting the library owner directly to request a new one.
+- A one-click **"Copy link"** action, with visible confirmation once copied (e.g. button label briefly changes to "Copied!").
+
+At the moment of first display, the request is always `PENDING`, so it also shows queue position and a cancel action, per 4.3.
 
 ---
 
@@ -129,7 +135,7 @@ Shown immediately after successful submission. This is the **same view/component
 
 - URL: `/request/manage/{token}`
 - **No expiry.** Remains valid as long as the underlying `loan_requests` row exists and the token has not been superseded by an admin-triggered regeneration (5.5).
-- **Lost email:** there is no borrower-initiated recovery mechanism, since the raw email address is never stored (§29). If a borrower loses access to the email containing their link, their only recourse is to contact the admin directly (outside the system), who can regenerate a new link and send it manually (5.5).
+- **The confirmation screen (3.5) is the only time the raw link is ever shown.** There is no email fallback and no borrower-initiated recovery mechanism. If a borrower loses their link, their only recourse is to contact the admin directly (outside the system), who can regenerate a new link and share it manually (5.5), e.g. by text message.
 
 ### 4.2 Page load behavior
 
@@ -165,8 +171,6 @@ This "always re-fetch and re-render from server truth" approach avoids optimisti
 ### 5.1 Dashboard scope
 
 Default view shows **all active requests** — both `PENDING` and `APPROVED`. Terminal requests (`RETURNED`, `CANCELLED`) are hidden by default but can be revealed via a **"Show history"** toggle on the same dashboard (no separate history page).
-
-Requests with `email_delivery_failed = TRUE` should be visually flagged on this dashboard so the admin notices and can follow up manually (e.g. resend the link another way).
 
 ### 5.2 Filters
 
@@ -364,11 +368,11 @@ Uploaded files are classified into three categories, each shown with a thumbnail
 
 ## 9. Schema changes from this session (supplementing §1 of this document)
 
-In addition to `approved_at` and `email_delivery_failed` on `loan_requests` (§1), the following changes to `reads` were made during Goodreads-import design and should be reflected in `Technical_Specifications.md`'s data model (§5.4):
+In addition to `approved_at` on `loan_requests` (§1; `email_delivery_failed` was added and later dropped — see §1's note), the following changes to `reads` were made during Goodreads-import design and should be reflected in `Technical_Specifications.md`'s data model (§5.4):
 
 - **`reads.source_detail` dropped entirely** (migration 005). On reflection, no manual or imported use case needed anything beyond the three-value `source` distinction below — an always-empty column added complexity with no benefit.
 - **`reads.source` converted to a native Postgres enum**, `public.read_source`, with values `'Owned'` and `'NLB'` (migration 006), consistent with the existing `loan_request_status` enum pattern. Column remains nullable — `NULL` represents the third, unlabeled "other/unknown" bucket (e.g. borrowed from a friend), which was deliberately judged not to need its own value or detail field.
-- Applied migrations so far this session: `004_workflow_columns.sql` (loan_requests columns), `005_drop_source_detail.sql`, `006_read_source_enum.sql`.
+- Applied migrations so far this session: `004_workflow_columns.sql` (loan_requests columns), `005_drop_source_detail.sql`, `006_read_source_enum.sql`, `007_drop_email_delivery_failed.sql` (removes `email_delivery_failed` after email delivery was cut from scope — see §1 and §3.3).
 
 ---
 
