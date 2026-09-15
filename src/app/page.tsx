@@ -1,22 +1,32 @@
-import Link from "next/link";
-import { logout } from "./actions";
+import { getActiveBooks } from "@/lib/catalogue/books";
+import { getSpineTitle } from "@/lib/catalogue/spine-title";
 
-// PLACEHOLDER. The real dashboard (eight stat boxes, per
-// ui-specification.md §2.2) is built in a later step. This page exists
-// right now only so proxy.ts (Step 3) has a real destination to redirect
-// a freshly-logged-in admin to, so the auth round-trip is testable
-// end-to-end before the rest of Phase 2 is built.
-export default function AdminDashboardPage() {
+// Visual treatment intentionally deferred — see docs/visual-system.md,
+// which is not yet applied here (Phase 6 of the build). This is
+// structural layout only: a wrapping grid of generic spine shapes,
+// per technical-specifications.md §14. No search or click-to-open
+// details modal yet — those are separate, later steps.
+export default async function CataloguePage() {
+  const books = await getActiveBooks();
+
   return (
-    <main>
-      <h1>Admin dashboard (placeholder)</h1>
-      <p>If you can see this page, admin login is working.</p>
-      <p>
-        <Link href="/admin/books/sync">Sync spreadsheet</Link>
-      </p>
-      <form action={logout}>
-        <button type="submit">Sign out</button>
-      </form>
+    <main className="p-8">
+      <h1 className="text-2xl mb-6">Catalogue</h1>
+
+      {books.length === 0 ? (
+        <p>No books in the catalogue yet.</p>
+      ) : (
+        <ul className="flex flex-wrap gap-4 list-none p-0">
+          {books.map((book) => (
+            <li
+              key={book.id}
+              className="flex items-end justify-center w-24 h-40 border border-gray-400 p-2 text-center text-sm"
+            >
+              {getSpineTitle(book.title)}
+            </li>
+          ))}
+        </ul>
+      )}
     </main>
   );
 }
