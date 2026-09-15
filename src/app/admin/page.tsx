@@ -12,6 +12,9 @@ export default function AdminDashboardPage() {
       <h1>Admin dashboard (placeholder)</h1>
       <p>If you can see this page, admin login is working.</p>
       <p>
+        <Link href="/admin/requests">Requests</Link>
+      </p>
+      <p>
         <Link href="/admin/books/sync">Sync spreadsheet</Link>
       </p>
       <p>
