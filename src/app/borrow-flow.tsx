@@ -251,10 +251,12 @@ export function BorrowFlow({
     <div>
       <h2 className="text-xl mb-2">Request submitted</h2>
 
-      <div role="alert" className="border border-gray-400 p-2 mb-3 text-sm">
-        Save this link now — it will not be shown again. If you lose it,
-        contact the library owner directly to request a new one.
-      </div>
+      {!cancelled && (
+        <div role="alert" className="border border-gray-400 p-2 mb-3 text-sm">
+          Save this link now — it will not be shown again. If you lose it,
+          contact the library owner directly to request a new one.
+        </div>
+      )}
 
       {cancelled ? (
         <p>{cancelMessage}</p>
