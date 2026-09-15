@@ -1,6 +1,7 @@
 import { getAllRequestsForAdmin } from "./actions";
 import { filterRequests } from "@/lib/borrowing/filter-requests";
 import { parseRequestFilters } from "@/lib/borrowing/parse-filters";
+import { RequestRowActions } from "./request-row-actions";
 
 const FLAG_LABEL: Record<string, string> = {
   not_yet_collected: "Not yet collected",
@@ -110,6 +111,7 @@ export default async function AdminRequestsPage({
               <th className="p-2">Requested</th>
               <th className="p-2">Status</th>
               <th className="p-2">Flag</th>
+              <th className="p-2">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -126,6 +128,9 @@ export default async function AdminRequestsPage({
                 <td className="p-2">{r.status}</td>
                 <td className="p-2">
                   {r.attentionFlag ? FLAG_LABEL[r.attentionFlag] : ""}
+                </td>
+                <td className="p-2">
+                  <RequestRowActions request={r} />
                 </td>
               </tr>
             ))}
