@@ -305,3 +305,56 @@ export async function cancelRequestByToken(
 
   return { status: "cancelled" };
 }
+
+
+export type RequestStatusResult =
+  | { status: "invalid" }
+  | { status: "pending"; queuePosition: number }
+  | { status: "approved" }
+  | { status: "returned" }
+  | { status: "cancelled" };
+
+/**
+ * Fetches the current status for the borrower management link page
+ * (/request/manage/{token}), per technical-specifications.md §11 and
+ * workflows.md §4.2-4.3. Always reads fresh from the DB — no caching
+ * of state across visits, per §4.2's explicit requirement.
+ */
+export async function getRequestStatusByToken(
+  managementToken: string,
+): Promise<RequestStatusResult> {
+  const supabase = createAdminClient();
+  const tokenHash = hashToken(managementToken);
+
+  const { data: request, error } = await supabase
+    .from("loan_requests")
+    .select("id, status, book_id, requested_at")
+    .eq("management_token_hash", tokenHash)
+    .maybeSingle();
+
+  if (error || !request) {
+    return { status: "invalid" };
+  }
+
+  if (request.status === "pending") {
+    // Queue position recalculated fresh each time (technical-
+    // specifications.md §9): count of OTHER pending requests for the
+    // same book requested before this one.
+    const { count, error: countError } = await supabase
+      .from("loan_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("book_id", request.book_id)
+      .eq("status", "pending")
+      .lt("requested_at", request.requested_at);
+
+    if (countError) {
+      return { status: "invalid" };
+    }
+
+    return { status: "pending", queuePosition: count ?? 0 };
+  }
+
+  if (request.status === "approved") return { status: "approved" };
+  if (request.status === "returned") return { status: "returned" };
+  return { status: "cancelled" };
+}
