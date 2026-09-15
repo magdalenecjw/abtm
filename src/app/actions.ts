@@ -12,6 +12,7 @@ export type BookDetail = {
   status: "available" | "checked_out" | "on_loan";
   currentBorrowerNickname: string | null;
   loanStartedAt: string | null;
+  coverUrl: string | null;
 };
 
 /**
@@ -21,8 +22,7 @@ export type BookDetail = {
  * Deliberately fetched on-demand (only when a spine is clicked), not
  * as part of the initial catalogue listing — matches §33's
  * requirement not to load per-book detail for the whole grid up
- * front, and mirrors how covers are handled once Supabase Storage is
- * set up (Phase 3 — not yet, so no cover lookup here yet either).
+ * front.
  */
 export async function getBookDetail(id: string): Promise<BookDetail | null> {
   const supabase = await createClient();
@@ -44,6 +44,17 @@ export async function getBookDetail(id: string): Promise<BookDetail | null> {
     .eq("books_uuid", id)
     .maybeSingle();
 
+  const { data: cover } = await supabase
+    .from("book_covers")
+    .select("storage_path")
+    .eq("book_id", id)
+    .maybeSingle();
+
+  const coverUrl = cover
+    ? supabase.storage.from("covers").getPublicUrl(cover.storage_path).data
+        .publicUrl
+    : null;
+
   // Derived per technical-specifications.md §8. "checked_out" (queue
   // info shown "as appropriate" per §15) is intentionally minimal for
   // now — the spec doesn't specify exact queue-count content for
@@ -59,5 +70,6 @@ export async function getBookDetail(id: string): Promise<BookDetail | null> {
     status,
     currentBorrowerNickname: loanStatus?.current_borrower_nickname ?? null,
     loanStartedAt: loanStatus?.loan_started_at ?? null,
+    coverUrl,
   };
 }

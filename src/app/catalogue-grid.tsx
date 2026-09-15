@@ -94,6 +94,14 @@ export function CatalogueGrid({ books }: { books: CatalogueBook[] }) {
 
             {selected && (
               <div>
+                {selected.coverUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element -- external Supabase Storage URL, not a local/optimizable asset
+                  <img
+                    src={selected.coverUrl}
+                    alt={`Cover of ${selected.title}`}
+                    className="w-32 mb-3"
+                  />
+                )}
                 <h2 className="text-xl mb-1">{selected.title}</h2>
                 <p className="mb-1">By {selected.author}</p>
                 <p className="mb-1">{selected.genre}</p>
