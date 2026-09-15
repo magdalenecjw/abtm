@@ -132,21 +132,23 @@ export function CatalogueGrid({ books }: { books: CatalogueBook[] }) {
                       {STATUS_LABEL[selected.status]}
                     </p>
 
-                    {selected.status === "available" && (
-                      <button
-                        type="button"
-                        onClick={() => setView("borrowing")}
-                      >
-                        Request to borrow
-                      </button>
-                    )}
+                    {/* Shown regardless of status (available/checked_out/
+                        on_loan) — the queue mechanism (technical-
+                        specifications.md §9) means new borrowers can
+                        join the queue even while a book is already
+                        requested or on loan. Only an inactive book
+                        (which wouldn't appear in the catalogue at all)
+                        has no valid request path. */}
+                    <button type="button" onClick={() => setView("borrowing")}>
+                      Request to borrow
+                    </button>
 
                     {selected.status === "on_loan" &&
                       selected.currentBorrowerNickname && (
                         <p>
                           On loan to {selected.currentBorrowerNickname}
                           {selected.loanStartedAt &&
-                            ` since ${selected.loanStartedAt}`}
+                            ` since ${new Date(selected.loanStartedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}`}
                         </p>
                       )}
                   </div>
