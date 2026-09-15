@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { logout } from "./actions";
 
 // PLACEHOLDER. The real dashboard (eight stat boxes, per
@@ -10,6 +11,9 @@ export default function AdminDashboardPage() {
     <main>
       <h1>Admin dashboard (placeholder)</h1>
       <p>If you can see this page, admin login is working.</p>
+      <p>
+        <Link href="/admin/books/sync">Sync spreadsheet</Link>
+      </p>
       <form action={logout}>
         <button type="submit">Sign out</button>
       </form>
