@@ -254,3 +254,54 @@ export async function submitBorrowRequest(
     managementToken: rawManagementToken,
   };
 }
+
+
+export type CancelResult =
+  | { status: "cancelled" }
+  | { status: "not_pending"; currentStatus: string }
+  | { status: "invalid" };
+
+/**
+ * Cancels a request via its management token, per workflows.md §4.4.
+ * Re-checks the request is still PENDING at the moment of the click
+ * (it may have changed since page load, e.g. admin approved it in
+ * the meantime) — if it's no longer PENDING, this reflects the
+ * current true status rather than erroring, per the spec's "always
+ * re-fetch and re-render from server truth" approach.
+ *
+ * Shared by both the post-submission confirmation screen and the
+ * dedicated /request/manage/{token} page (same underlying action,
+ * per workflows.md §3.5's note that they're "the same view/component").
+ */
+export async function cancelRequestByToken(
+  managementToken: string,
+): Promise<CancelResult> {
+  const supabase = createAdminClient();
+  const tokenHash = hashToken(managementToken);
+
+  const { data: request, error } = await supabase
+    .from("loan_requests")
+    .select("id, status")
+    .eq("management_token_hash", tokenHash)
+    .maybeSingle();
+
+  if (error || !request) {
+    return { status: "invalid" };
+  }
+
+  if (request.status !== "pending") {
+    return { status: "not_pending", currentStatus: request.status };
+  }
+
+  const { error: updateError } = await supabase
+    .from("loan_requests")
+    .update({ status: "cancelled" })
+    .eq("id", request.id)
+    .eq("status", "pending"); // guard against a race since the last check
+
+  if (updateError) {
+    return { status: "invalid" };
+  }
+
+  return { status: "cancelled" };
+}
