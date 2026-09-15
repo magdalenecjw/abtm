@@ -62,6 +62,9 @@ export function CatalogueGrid({ books }: { books: CatalogueBook[] }) {
       </ul>
 
       {open && (
+        // TODO: click-outside-to-close isn't reliably closing the modal
+        // in testing (× button and Escape both work correctly). Not
+        // blocking — revisit during the Phase 6 polish pass.
         <div
           role="presentation"
           onClick={close}
@@ -121,7 +124,7 @@ export function CatalogueGrid({ books }: { books: CatalogueBook[] }) {
             )}
           </div>
         </div>
-      )}
+      )} 
     </>
   );
 }
