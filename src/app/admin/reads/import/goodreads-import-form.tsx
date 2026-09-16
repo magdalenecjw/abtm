@@ -12,6 +12,7 @@ import { BookPicker } from "@/app/admin/book-picker";
 
 type RowState = {
   match: GoodreadsMatchResult;
+  include: boolean;
   source: "" | "Owned" | "NLB";
   bookIdCode: string;
   rating: string;
@@ -27,6 +28,11 @@ type Phase =
 function toRowState(match: GoodreadsMatchResult): RowState {
   return {
     match,
+    // Not part of the written spec — added on request, since manually
+    // remembering to delete unwanted rows afterward (the only other
+    // way to exclude something) is more error-prone than just not
+    // importing it in the first place.
+    include: true,
     // Auto-matched rows default to Owned + the matched book_id code,
     // per workflows.md §7.3 — admin can still change this before
     // applying.
@@ -75,16 +81,18 @@ export function GoodreadsImportForm() {
   }
 
   function handleApply(rows: RowState[]) {
-    const applyRows: GoodreadsApplyRow[] = rows.map((r) => ({
-      goodreadsId: r.match.row.goodreadsId,
-      title: r.match.row.title,
-      author: r.match.row.author,
-      dateRead: r.match.row.dateRead,
-      rating: r.rating.trim() ? Number(r.rating) : null,
-      notes: r.notes || null,
-      source: r.source,
-      bookIdCode: r.bookIdCode,
-    }));
+    const applyRows: GoodreadsApplyRow[] = rows
+      .filter((r) => r.include)
+      .map((r) => ({
+        goodreadsId: r.match.row.goodreadsId,
+        title: r.match.row.title,
+        author: r.match.row.author,
+        dateRead: r.match.row.dateRead,
+        rating: r.rating.trim() ? Number(r.rating) : null,
+        notes: r.notes || null,
+        source: r.source,
+        bookIdCode: r.bookIdCode,
+      }));
 
     startTransition(async () => {
       const result = await applyGoodreadsImport(applyRows);
@@ -131,13 +139,15 @@ export function GoodreadsImportForm() {
         <div>
           <h2>Preview</h2>
           <p>
-            To import: {phase.rows.length} — Already imported:{" "}
+            To import: {phase.rows.filter((r) => r.include).length} of{" "}
+            {phase.rows.length} — Already imported:{" "}
             {phase.alreadyImportedCount}
           </p>
 
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr className="border-b border-gray-400 text-left">
+                <th className="p-2">Include</th>
                 <th className="p-2">Title</th>
                 <th className="p-2">Author</th>
                 <th className="p-2">Source</th>
@@ -148,7 +158,20 @@ export function GoodreadsImportForm() {
             </thead>
             <tbody>
               {phase.rows.map((r, i) => (
-                <tr key={r.match.row.goodreadsId} className="border-b border-gray-200">
+                <tr
+                  key={r.match.row.goodreadsId}
+                  className={`border-b border-gray-200 ${r.include ? "" : "opacity-50"}`}
+                >
+                  <td className="p-2">
+                    <input
+                      type="checkbox"
+                      checked={r.include}
+                      onChange={(e) =>
+                        updateRow(i, { include: e.target.checked })
+                      }
+                      disabled={isPending}
+                    />
+                  </td>
                   <td className="p-2">{r.match.row.title}</td>
                   <td className="p-2">{r.match.row.author}</td>
                   <td className="p-2">
