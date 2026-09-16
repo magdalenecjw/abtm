@@ -1,3 +1,4 @@
+import { AppBrand } from "@/app/app-brand";
 import { getRequestStatusByToken } from "@/app/borrow-actions";
 import { CancelButton } from "./cancel-button";
 import { formatQueuePosition } from "@/lib/borrowing/queue-position";
@@ -16,7 +17,8 @@ export default async function ManageRequestPage({
 
   return (
     <main className="max-w-md mx-auto px-6 py-16">
-      <h1 className="page-heading mb-6">Your request</h1>
+      <AppBrand />
+      <h1 className="page-heading mb-6 mt-6">Your request</h1>
 
       {result.status === "invalid" && (
         <p>This request link is invalid or no longer available.</p>
