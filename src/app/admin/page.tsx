@@ -20,6 +20,9 @@ export default function AdminDashboardPage() {
       <p>
         <Link href="/admin/books/covers">Covers</Link>
       </p>
+      <p>
+        <Link href="/admin/reads">My Reads</Link>
+      </p>
       <form action={logout}>
         <button type="submit">Sign out</button>
       </form>
