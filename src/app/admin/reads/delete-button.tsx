@@ -31,7 +31,12 @@ export function DeleteButton({ id }: { id: string }) {
   }
 
   return (
-    <button type="button" onClick={handleDelete} disabled={isPending}>
+    <button
+      type="button"
+      onClick={handleDelete}
+      disabled={isPending}
+      className="destructive-button"
+    >
       {isPending ? "Deleting…" : "Delete"}
     </button>
   );

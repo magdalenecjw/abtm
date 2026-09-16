@@ -12,10 +12,9 @@ import {
 } from "./actions";
 import type { AdminRequestRow } from "@/lib/borrowing/filter-requests";
 
-// Visual treatment intentionally deferred — see docs/visual-system.md,
-// which is not yet applied here (Phase 6 of the build). All actions
-// are immediate on click, no confirmation dialogs — consistent with
-// workflows.md §5.4's "low-stakes, single-admin tool" reasoning.
+// All actions are immediate on click, no confirmation dialogs —
+// consistent with workflows.md §5.4's "low-stakes, single-admin
+// tool" reasoning.
 export function RequestRowActions({ request }: { request: AdminRequestRow }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -50,15 +49,18 @@ export function RequestRowActions({ request }: { request: AdminRequestRow }) {
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2 py-2">
       {error && (
-        <p role="alert" className="text-sm">
+        <p role="alert" className="text-sm text-[var(--terracotta)]">
           {error}
         </p>
       )}
 
       {regeneratedLink && (
-        <div role="alert" className="text-sm border border-gray-400 p-1">
+        <div
+          role="alert"
+          className="text-sm border border-[var(--terracotta)] rounded-[3px] p-2"
+        >
           <p>New link (copy and send manually — shown once):</p>
           <p className="break-all">
             {typeof window !== "undefined" ? window.location.origin : ""}
@@ -68,11 +70,12 @@ export function RequestRowActions({ request }: { request: AdminRequestRow }) {
       )}
 
       {request.status === "pending" && (
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
             type="button"
             disabled={isPending}
             onClick={() => runSimple(() => approveRequest(request.id))}
+            className="primary-button"
           >
             Approve
           </button>
@@ -80,23 +83,30 @@ export function RequestRowActions({ request }: { request: AdminRequestRow }) {
             type="button"
             disabled={isPending}
             onClick={() => runSimple(() => cancelRequestAsAdmin(request.id))}
+            className="destructive-button"
           >
             Cancel
           </button>
-          <button type="button" disabled={isPending} onClick={runRegenerate}>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={runRegenerate}
+            className="secondary-button"
+          >
             Regenerate link
           </button>
         </div>
       )}
 
       {request.status === "approved" && (
-        <div className="flex flex-col gap-1">
-          <div className="flex gap-2 items-center">
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2 items-center flex-wrap">
             <input
               type="date"
               value={collectionDateInput}
               onChange={(e) => setCollectionDateInput(e.target.value)}
               disabled={isPending}
+              className="search-input"
             />
             <button
               type="button"
@@ -104,17 +114,19 @@ export function RequestRowActions({ request }: { request: AdminRequestRow }) {
               onClick={() =>
                 runSimple(() => markCollected(request.id, collectionDateInput))
               }
+              className="secondary-button"
             >
               {request.collectionDate
                 ? "Update collection date"
                 : "Mark collected"}
             </button>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               type="button"
               disabled={isPending}
               onClick={() => runSimple(() => markReturned(request.id))}
+              className="primary-button"
             >
               Mark returned
             </button>
@@ -122,10 +134,16 @@ export function RequestRowActions({ request }: { request: AdminRequestRow }) {
               type="button"
               disabled={isPending}
               onClick={() => runSimple(() => cancelRequestAsAdmin(request.id))}
+              className="destructive-button"
             >
               Cancel
             </button>
-            <button type="button" disabled={isPending} onClick={runRegenerate}>
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={runRegenerate}
+              className="secondary-button"
+            >
               Regenerate link
             </button>
           </div>

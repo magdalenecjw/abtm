@@ -11,8 +11,6 @@ type Phase =
   | { step: "preview"; rows: SyncRow[]; preview: PreviewResult }
   | { step: "result"; result: ApplyActionResult };
 
-// Visual treatment intentionally deferred — see docs/visual-system.md,
-// which is not yet applied anywhere in the app (Phase 6 of the build).
 export function SyncForm() {
   const [phase, setPhase] = useState<Phase>({ step: "idle" });
   const [isPending, startTransition] = useTransition();
@@ -45,7 +43,9 @@ export function SyncForm() {
     <div>
       {(phase.step === "idle" || phase.step === "errors") && (
         <form ref={formRef} action={handlePreviewSubmit}>
-          <label htmlFor="file">Catalogue spreadsheet (.xlsx)</label>
+          <label htmlFor="file" className="text-sm block mb-2">
+            Catalogue spreadsheet (.xlsx)
+          </label>
           <input
             id="file"
             name="file"
@@ -53,21 +53,24 @@ export function SyncForm() {
             accept=".xlsx"
             required
             disabled={isPending}
+            className="file-input"
           />
-          <button type="submit" disabled={isPending}>
-            {isPending ? "Checking…" : "Preview sync"}
-          </button>
+          <div className="mt-4">
+            <button type="submit" disabled={isPending} className="primary-button">
+              {isPending ? "Checking…" : "Preview sync"}
+            </button>
+          </div>
         </form>
       )}
 
       {phase.step === "errors" && (
-        <div role="alert">
-          <p>
+        <div role="alert" className="mt-4 text-sm text-[var(--terracotta)]">
+          <p className="mb-2">
             This file has {phase.errors.length}{" "}
             {phase.errors.length === 1 ? "problem" : "problems"} — fix all of
             them and re-upload:
           </p>
-          <ul>
+          <ul className="list-disc pl-5">
             {phase.errors.map((error, i) => (
               <li key={i}>{error}</li>
             ))}
@@ -76,9 +79,9 @@ export function SyncForm() {
       )}
 
       {phase.step === "preview" && (
-        <div>
-          <h2>Preview</h2>
-          <ul>
+        <div className="mt-2">
+          <h2 className="book-title text-lg mb-3">Preview</h2>
+          <ul className="text-sm mb-4">
             <li>New: {phase.preview.newRows.length}</li>
             <li>Updated: {phase.preview.updatedRows.length}</li>
             <li>Unchanged: {phase.preview.unchangedCount}</li>
@@ -86,9 +89,9 @@ export function SyncForm() {
           </ul>
 
           {phase.preview.newRows.length > 0 && (
-            <section>
-              <h3>New books</h3>
-              <ul>
+            <section className="mb-4">
+              <h3 className="text-sm font-medium mb-1">New books</h3>
+              <ul className="text-sm list-disc pl-5">
                 {phase.preview.newRows.map((row) => (
                   <li key={row.book_id}>
                     {row.book_id} — {row.title} by {row.author} ({row.genre})
@@ -99,13 +102,13 @@ export function SyncForm() {
           )}
 
           {phase.preview.updatedRows.length > 0 && (
-            <section>
-              <h3>Updated books</h3>
-              <ul>
+            <section className="mb-4">
+              <h3 className="text-sm font-medium mb-1">Updated books</h3>
+              <ul className="text-sm list-disc pl-5">
                 {phase.preview.updatedRows.map(({ row, diffs }) => (
                   <li key={row.book_id}>
                     {row.book_id} — {row.title}
-                    <ul>
+                    <ul className="list-disc pl-5">
                       {diffs.map((diff) => (
                         <li key={diff.field}>
                           {diff.field}: {diff.oldValue} → {diff.newValue}
@@ -119,14 +122,16 @@ export function SyncForm() {
           )}
 
           {phase.preview.missingBookIds.length > 0 && (
-            <section>
-              <h3>Missing from spreadsheet (no action taken)</h3>
-              <p>
+            <section className="mb-4">
+              <h3 className="text-sm font-medium mb-1">
+                Missing from spreadsheet (no action taken)
+              </h3>
+              <p className="text-sm mb-2">
                 These book_ids exist in the catalogue but were not in this
                 upload. Nothing has been changed for them — this is
                 informational only.
               </p>
-              <ul>
+              <ul className="text-sm list-disc pl-5">
                 {phase.preview.missingBookIds.map((id) => (
                   <li key={id}>{id}</li>
                 ))}
@@ -134,23 +139,31 @@ export function SyncForm() {
             </section>
           )}
 
-          <button
-            type="button"
-            onClick={() => handleApply(phase.rows)}
-            disabled={isPending}
-          >
-            {isPending ? "Applying…" : "Apply"}
-          </button>
-          <button type="button" onClick={reset} disabled={isPending}>
-            Cancel
-          </button>
+          <div className="flex gap-2 mt-4">
+            <button
+              type="button"
+              onClick={() => handleApply(phase.rows)}
+              disabled={isPending}
+              className="primary-button"
+            >
+              {isPending ? "Applying…" : "Apply"}
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              disabled={isPending}
+              className="secondary-button"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 
       {phase.step === "result" && phase.result.status === "success" && (
-        <div>
-          <p>Sync applied successfully.</p>
-          <ul>
+        <div className="mt-2">
+          <p className="mb-2">Sync applied successfully.</p>
+          <ul className="text-sm mb-4">
             <li>New: {phase.result.newCount}</li>
             <li>Updated: {phase.result.updatedCount}</li>
             <li>Unchanged: {phase.result.unchangedCount}</li>
@@ -158,16 +171,18 @@ export function SyncForm() {
               Missing from spreadsheet: {phase.result.missingBookIds.length}
             </li>
           </ul>
-          <button type="button" onClick={reset}>
+          <button type="button" onClick={reset} className="secondary-button">
             Sync another file
           </button>
         </div>
       )}
 
       {phase.step === "result" && phase.result.status === "error" && (
-        <div role="alert">
-          <p>Sync failed: {phase.result.error}</p>
-          <button type="button" onClick={reset}>
+        <div role="alert" className="mt-2">
+          <p className="text-sm text-[var(--terracotta)] mb-2">
+            Sync failed: {phase.result.error}
+          </p>
+          <button type="button" onClick={reset} className="secondary-button">
             Try again
           </button>
         </div>

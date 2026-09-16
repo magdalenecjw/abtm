@@ -1,11 +1,11 @@
+import { AdminHeader } from "@/app/admin/admin-header";
 import { SyncForm } from "./sync-form";
 
-// Visual treatment intentionally deferred — see docs/visual-system.md,
-// which is not yet applied anywhere in the app (Phase 6 of the build).
 export default function AdminSyncPage() {
   return (
-    <main>
-      <h1>Sync spreadsheet</h1>
+    <main className="max-w-3xl mx-auto px-6 py-12">
+      <AdminHeader />
+      <h1 className="page-heading mb-6">Sync spreadsheet</h1>
       <SyncForm />
     </main>
   );

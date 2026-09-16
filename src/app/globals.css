@@ -251,3 +251,26 @@ a {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* File inputs */
+
+.file-input {
+  font-size: 14px;
+}
+
+.file-input::file-selector-button {
+  margin-right: 12px;
+  padding: 8px 16px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: var(--accent);
+  color: var(--background);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.file-input::file-selector-button:hover {
+  background: #7c8d71;
+}

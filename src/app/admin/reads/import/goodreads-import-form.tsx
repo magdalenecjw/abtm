@@ -43,14 +43,6 @@ function toRowState(match: GoodreadsMatchResult): RowState {
   };
 }
 
-// Visual treatment intentionally deferred — see docs/visual-system.md,
-// which is not yet applied here (Phase 6 of the build).
-//
-// Book linking uses a plain text input for the book_id CODE (e.g.
-// "BK0001") rather than a full search-by-title/author picker widget
-// — a pragmatic simplification at this project's personal-library
-// scale, consistent with the same simplification used on the read
-// edit form (src/app/admin/reads/[id]/edit/edit-read-form.tsx).
 export function GoodreadsImportForm() {
   const [phase, setPhase] = useState<Phase>({ step: "idle" });
   const [isPending, startTransition] = useTransition();
@@ -109,7 +101,9 @@ export function GoodreadsImportForm() {
     <div>
       {(phase.step === "idle" || phase.step === "errors") && (
         <form ref={formRef} action={handlePreviewSubmit}>
-          <label htmlFor="file">Goodreads library export (.csv)</label>
+          <label htmlFor="file" className="text-sm block mb-2">
+            Goodreads library export (.csv)
+          </label>
           <input
             id="file"
             name="file"
@@ -117,17 +111,20 @@ export function GoodreadsImportForm() {
             accept=".csv"
             required
             disabled={isPending}
+            className="file-input"
           />
-          <button type="submit" disabled={isPending}>
-            {isPending ? "Checking…" : "Preview import"}
-          </button>
+          <div className="mt-4">
+            <button type="submit" disabled={isPending} className="primary-button">
+              {isPending ? "Checking…" : "Preview import"}
+            </button>
+          </div>
         </form>
       )}
 
       {phase.step === "errors" && (
-        <div role="alert">
-          <p>This file has problems — fix them and re-upload:</p>
-          <ul>
+        <div role="alert" className="mt-4 text-sm text-[var(--terracotta)]">
+          <p className="mb-2">This file has problems — fix them and re-upload:</p>
+          <ul className="list-disc pl-5">
             {phase.errors.map((error, i) => (
               <li key={i}>{error}</li>
             ))}
@@ -136,22 +133,22 @@ export function GoodreadsImportForm() {
       )}
 
       {phase.step === "preview" && (
-        <div>
-          <h2>Preview</h2>
-          <p>
+        <div className="mt-2">
+          <h2 className="book-title text-lg mb-2">Preview</h2>
+          <p className="text-sm mb-4">
             To import: {phase.rows.filter((r) => r.include).length} of{" "}
             {phase.rows.length} — Already imported:{" "}
             {phase.alreadyImportedCount}
           </p>
 
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full text-sm border-collapse mb-4">
             <thead>
-              <tr className="border-b border-gray-400 text-left">
+              <tr className="border-b border-[var(--rule)] text-left">
                 <th className="p-2">Include</th>
                 <th className="p-2">Title</th>
                 <th className="p-2">Author</th>
                 <th className="p-2">Source</th>
-                <th className="p-2">Linked book_id</th>
+                <th className="p-2">Linked book</th>
                 <th className="p-2">Rating</th>
                 <th className="p-2">Notes</th>
               </tr>
@@ -160,7 +157,7 @@ export function GoodreadsImportForm() {
               {phase.rows.map((r, i) => (
                 <tr
                   key={r.match.row.goodreadsId}
-                  className={`border-b border-gray-200 ${r.include ? "" : "opacity-50"}`}
+                  className={`border-b border-[var(--rule)] ${r.include ? "" : "opacity-50"}`}
                 >
                   <td className="p-2">
                     <input
@@ -183,6 +180,7 @@ export function GoodreadsImportForm() {
                         })
                       }
                       disabled={isPending}
+                      className="search-input"
                     >
                       <option value="">(none/other)</option>
                       <option value="Owned">Owned</option>
@@ -205,7 +203,7 @@ export function GoodreadsImportForm() {
                       value={r.rating}
                       onChange={(e) => updateRow(i, { rating: e.target.value })}
                       disabled={isPending}
-                      className="border border-gray-400 px-1 w-12"
+                      className="search-input w-14"
                     />
                   </td>
                   <td className="p-2">
@@ -213,7 +211,7 @@ export function GoodreadsImportForm() {
                       value={r.notes}
                       onChange={(e) => updateRow(i, { notes: e.target.value })}
                       disabled={isPending}
-                      className="border border-gray-400 px-1"
+                      className="search-input"
                     />
                   </td>
                 </tr>
@@ -221,36 +219,46 @@ export function GoodreadsImportForm() {
             </tbody>
           </table>
 
-          <button
-            type="button"
-            onClick={() => handleApply(phase.rows)}
-            disabled={isPending}
-          >
-            {isPending ? "Importing…" : "Apply"}
-          </button>
-          <button type="button" onClick={reset} disabled={isPending}>
-            Cancel
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleApply(phase.rows)}
+              disabled={isPending}
+              className="primary-button"
+            >
+              {isPending ? "Importing…" : "Apply"}
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              disabled={isPending}
+              className="secondary-button"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 
       {phase.step === "result" && phase.result.ok && (
-        <div>
-          <p>Import applied successfully.</p>
-          <ul>
+        <div className="mt-2">
+          <p className="mb-2">Import applied successfully.</p>
+          <ul className="text-sm mb-4">
             <li>Imported: {phase.result.importedCount}</li>
             <li>Already imported: {phase.result.alreadyImportedCount}</li>
           </ul>
-          <button type="button" onClick={reset}>
+          <button type="button" onClick={reset} className="secondary-button">
             Import another file
           </button>
         </div>
       )}
 
       {phase.step === "result" && !phase.result.ok && (
-        <div role="alert">
-          <p>Import failed: {phase.result.error}</p>
-          <button type="button" onClick={reset}>
+        <div role="alert" className="mt-2">
+          <p className="text-sm text-[var(--terracotta)] mb-2">
+            Import failed: {phase.result.error}
+          </p>
+          <button type="button" onClick={reset} className="secondary-button">
             Try again
           </button>
         </div>

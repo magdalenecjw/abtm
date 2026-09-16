@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { updateRead, type ReadDetail } from "../../actions";
 import { BookPicker } from "@/app/admin/book-picker";
 
-// Visual treatment intentionally deferred — see docs/visual-system.md,
-// which is not yet applied here (Phase 6 of the build).
 export function EditReadForm({ read }: { read: ReadDetail }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -46,79 +44,111 @@ export function EditReadForm({ read }: { read: ReadDetail }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-md">
-      <label htmlFor="title">Title</label>
-      <input
-        id="title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="border border-gray-400 px-2 py-1"
-        required
-      />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-md">
+      <div>
+        <label htmlFor="title" className="text-sm block mb-1">
+          Title
+        </label>
+        <input
+          id="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="search-input"
+          required
+        />
+      </div>
 
-      <label htmlFor="author">Author</label>
-      <input
-        id="author"
-        value={author}
-        onChange={(e) => setAuthor(e.target.value)}
-        className="border border-gray-400 px-2 py-1"
-        required
-      />
+      <div>
+        <label htmlFor="author" className="text-sm block mb-1">
+          Author
+        </label>
+        <input
+          id="author"
+          value={author}
+          onChange={(e) => setAuthor(e.target.value)}
+          className="search-input"
+          required
+        />
+      </div>
 
-      <label htmlFor="genre">Genre</label>
-      <input
-        id="genre"
-        value={genre}
-        onChange={(e) => setGenre(e.target.value)}
-        className="border border-gray-400 px-2 py-1"
-      />
+      <div>
+        <label htmlFor="genre" className="text-sm block mb-1">
+          Genre
+        </label>
+        <input
+          id="genre"
+          value={genre}
+          onChange={(e) => setGenre(e.target.value)}
+          className="search-input"
+        />
+      </div>
 
-      <label htmlFor="rating">Rating</label>
-      <input
-        id="rating"
-        value={rating}
-        onChange={(e) => setRating(e.target.value)}
-        className="border border-gray-400 px-2 py-1"
-      />
+      <div>
+        <label htmlFor="rating" className="text-sm block mb-1">
+          Rating
+        </label>
+        <input
+          id="rating"
+          value={rating}
+          onChange={(e) => setRating(e.target.value)}
+          className="search-input"
+        />
+      </div>
 
-      <label htmlFor="notes">Notes</label>
-      <textarea
-        id="notes"
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        className="border border-gray-400 px-2 py-1"
-      />
+      <div>
+        <label htmlFor="notes" className="text-sm block mb-1">
+          Notes
+        </label>
+        <textarea
+          id="notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          className="search-input"
+        />
+      </div>
 
-      <label htmlFor="dateRead">Date read</label>
-      <input
-        id="dateRead"
-        type="date"
-        value={dateRead}
-        onChange={(e) => setDateRead(e.target.value)}
-        className="border border-gray-400 px-2 py-1"
-      />
+      <div>
+        <label htmlFor="dateRead" className="text-sm block mb-1">
+          Date read
+        </label>
+        <input
+          id="dateRead"
+          type="date"
+          value={dateRead}
+          onChange={(e) => setDateRead(e.target.value)}
+          className="search-input"
+        />
+      </div>
 
-      <label htmlFor="source">Source</label>
-      <select
-        id="source"
-        value={source}
-        onChange={(e) => setSource(e.target.value as "" | "Owned" | "NLB")}
-        className="border border-gray-400 px-2 py-1"
-      >
-        <option value="">(none/other)</option>
-        <option value="Owned">Owned</option>
-        <option value="NLB">NLB</option>
-      </select>
+      <div>
+        <label htmlFor="source" className="text-sm block mb-1">
+          Source
+        </label>
+        <select
+          id="source"
+          value={source}
+          onChange={(e) => setSource(e.target.value as "" | "Owned" | "NLB")}
+          className="search-input"
+        >
+          <option value="">(none/other)</option>
+          <option value="Owned">Owned</option>
+          <option value="NLB">NLB</option>
+        </select>
+      </div>
 
-      <label htmlFor="bookIdCode">Linked book (leave blank to unlink)</label>
-      <BookPicker
-        value={bookIdCode}
-        onChange={setBookIdCode}
-        disabled={isPending}
-      />
+      <div>
+        <label htmlFor="bookIdCode" className="text-sm block mb-1">
+          Linked book (leave blank to unlink)
+        </label>
+        <BookPicker
+          value={bookIdCode}
+          onChange={setBookIdCode}
+          disabled={isPending}
+        />
+      </div>
 
       {error && (
-        <p role="alert" className="text-sm">
+        <p role="alert" className="text-sm text-[var(--terracotta)]">
           {error}
         </p>
       )}
@@ -126,7 +156,7 @@ export function EditReadForm({ read }: { read: ReadDetail }) {
       <button
         type="submit"
         disabled={isPending}
-        className="border border-gray-400 px-3 py-1 self-start"
+        className="primary-button self-start"
       >
         {isPending ? "Saving…" : "Save"}
       </button>

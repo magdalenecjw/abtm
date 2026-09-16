@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminHeader } from "../admin-header";
 import { getAllBooksForAdmin, type BookStatus } from "./actions";
 
 const STATUS_LABEL: Record<BookStatus, string> = {
@@ -35,6 +36,7 @@ export default async function AdminBooksPage({
 
   return (
     <main className="max-w-5xl mx-auto px-6 py-12 md:px-8">
+      <AdminHeader />
       <h1 className="page-heading mb-6">Books</h1>
 
       <form method="get" className="mb-6 flex flex-wrap gap-2 items-end">

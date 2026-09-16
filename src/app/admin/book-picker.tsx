@@ -60,21 +60,26 @@ export function BookPicker({
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder="Search by title, author, or book_id"
         disabled={disabled || books === null}
-        className="border border-gray-400 px-2 py-1"
+        className="search-input"
       />
       {value && (
-        <button type="button" onClick={clear} disabled={disabled}>
+        <button
+          type="button"
+          onClick={clear}
+          disabled={disabled}
+          className="text-link text-sm ml-2"
+        >
           Clear
         </button>
       )}
       {open && results.length > 0 && (
-        <ul className="absolute z-10 bg-white border border-gray-400 max-h-48 overflow-auto w-64">
+        <ul className="absolute z-10 bg-[var(--background)] border border-[var(--rule)] rounded-[3px] max-h-48 overflow-auto w-64">
           {results.map((b) => (
             <li key={b.id}>
               <button
                 type="button"
                 onClick={() => selectBook(b)}
-                className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                className="block w-full text-left px-3 py-2 text-sm hover:bg-[var(--spine-light)]"
               >
                 {b.title} — {b.author} ({b.book_id})
               </button>

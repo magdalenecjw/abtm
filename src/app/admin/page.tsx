@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminHeader } from "./admin-header";
 import { getDashboardStats } from "./dashboard-actions";
 import { logout } from "./actions";
 
@@ -14,10 +15,10 @@ function StatBox({
   return (
     <Link
       href={href}
-      className="border border-[var(--rule)] rounded-[3px] p-4 hover:border-[var(--accent)] transition-colors"
+      className="border border-[var(--rule)] rounded-[3px] p-3 hover:border-[var(--accent)] transition-colors"
     >
-      <p className="text-2xl font-caslon">{value}</p>
-      <p className="text-sm mt-1">{label}</p>
+      <p className="text-xl font-caslon">{value}</p>
+      <p className="text-xs mt-1">{label}</p>
     </Link>
   );
 }
@@ -29,7 +30,8 @@ export default async function AdminDashboardPage() {
   const stats = await getDashboardStats();
 
   return (
-    <main className="max-w-5xl mx-auto px-6 py-12 md:px-8">
+    <main className="max-w-4xl mx-auto px-6 py-12 md:px-8">
+      <AdminHeader />
       <div className="flex items-center justify-between mb-8">
         <h1 className="page-heading">Dashboard</h1>
         <form action={logout}>
@@ -39,7 +41,7 @@ export default async function AdminDashboardPage() {
         </form>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl">
         <StatBox label="Total books" value={stats.totalBooks} href="/admin/books" />
         <StatBox
           label="Available"
@@ -73,27 +75,6 @@ export default async function AdminDashboardPage() {
         />
         <StatBox label="Total reads" value={stats.totalReads} href="/admin/reads" />
       </div>
-
-      <nav className="flex flex-wrap gap-4 text-sm border-t border-[var(--rule)] pt-6">
-        <Link href="/admin/requests" className="text-link">
-          Requests
-        </Link>
-        <Link href="/admin/books" className="text-link">
-          Books
-        </Link>
-        <Link href="/admin/books/sync" className="text-link">
-          Sync spreadsheet
-        </Link>
-        <Link href="/admin/books/covers" className="text-link">
-          Covers
-        </Link>
-        <Link href="/admin/reads" className="text-link">
-          My Reads
-        </Link>
-        <Link href="/admin/reads/import" className="text-link">
-          Import Goodreads
-        </Link>
-      </nav>
     </main>
   );
 }

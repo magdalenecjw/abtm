@@ -92,7 +92,7 @@ export function CoversForm() {
     <div>
       {phase.step === "idle" && (
         <div>
-          <label htmlFor="cover-files">
+          <label htmlFor="cover-files" className="text-sm block mb-2">
             Cover image(s) — filename must exactly match a book_id (e.g.
             BK0001.jpg)
           </label>
@@ -104,26 +104,27 @@ export function CoversForm() {
             multiple
             disabled={isPending}
             onChange={(e) => handleFilesSelected(e.target.files)}
+            className="file-input"
           />
-          {isPending && <p>Checking files…</p>}
+          {isPending && <p className="text-sm mt-2">Checking files…</p>}
         </div>
       )}
 
       {phase.step === "preview" && (
         <div>
-          <h2>Preview</h2>
-          <ul className="flex flex-wrap gap-4 list-none p-0">
+          <h2 className="book-title text-lg mb-3">Preview</h2>
+          <ul className="flex flex-wrap gap-4 list-none p-0 mb-4">
             {phase.entries.map((entry, i) => (
               <li key={i} className="w-32">
                 {/* eslint-disable-next-line @next/next/no-img-element -- local blob preview, not an optimizable remote/static asset */}
                 <img
                   src={entry.previewUrl}
                   alt={entry.file.name}
-                  className="w-32 h-32 object-cover border border-gray-400"
+                  className="w-32 h-32 object-cover rounded-[3px] border border-[var(--rule)]"
                 />
-                <p className="text-sm break-all">{entry.file.name}</p>
+                <p className="text-sm break-all mt-1">{entry.file.name}</p>
                 {entry.validationError && (
-                  <p role="alert" className="text-sm">
+                  <p role="alert" className="text-sm text-[var(--terracotta)]">
                     {entry.validationError}
                   </p>
                 )}
@@ -138,7 +139,7 @@ export function CoversForm() {
                   )}
                 {!entry.validationError &&
                   entry.match?.status === "unmatched" && (
-                    <p role="alert" className="text-sm">
+                    <p role="alert" className="text-sm text-[var(--terracotta)]">
                       No matching book — will not be uploaded
                     </p>
                   )}
@@ -146,30 +147,38 @@ export function CoversForm() {
             ))}
           </ul>
 
-          <button
-            type="button"
-            onClick={() => handleApply(phase.entries)}
-            disabled={isPending}
-          >
-            {isPending ? "Uploading…" : "Apply"}
-          </button>
-          <button type="button" onClick={reset} disabled={isPending}>
-            Cancel
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => handleApply(phase.entries)}
+              disabled={isPending}
+              className="primary-button"
+            >
+              {isPending ? "Uploading…" : "Apply"}
+            </button>
+            <button
+              type="button"
+              onClick={reset}
+              disabled={isPending}
+              className="secondary-button"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 
       {phase.step === "result" && (
         <div>
-          <h2>Result</h2>
-          <ul>
+          <h2 className="book-title text-lg mb-3">Result</h2>
+          <ul className="text-sm mb-4">
             {phase.results.map((r, i) => (
               <li key={i}>
                 {r.filename}: {r.ok ? "Uploaded" : `Failed — ${r.reason}`}
               </li>
             ))}
           </ul>
-          <button type="button" onClick={reset}>
+          <button type="button" onClick={reset} className="secondary-button">
             Upload more
           </button>
         </div>

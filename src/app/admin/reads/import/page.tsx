@@ -1,11 +1,11 @@
+import { AdminHeader } from "@/app/admin/admin-header";
 import { GoodreadsImportForm } from "./goodreads-import-form";
 
-// Visual treatment intentionally deferred — see docs/visual-system.md,
-// which is not yet applied here (Phase 6 of the build).
 export default function GoodreadsImportPage() {
   return (
-    <main className="p-8">
-      <h1 className="text-2xl mb-6">Import from Goodreads</h1>
+    <main className="max-w-4xl mx-auto px-6 py-12">
+      <AdminHeader />
+      <h1 className="page-heading mb-6">Import from Goodreads</h1>
       <GoodreadsImportForm />
     </main>
   );
