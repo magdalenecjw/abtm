@@ -14,7 +14,7 @@ export default async function EditReadPage({
 
   if (!read) {
     return (
-      <main className="max-w-3xl mx-auto px-6 py-12">
+      <main className="max-w-4xl mx-auto px-6 py-12">
         <AdminHeader />
         <p>This read could not be found.</p>
       </main>
@@ -22,7 +22,7 @@ export default async function EditReadPage({
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-12">
+    <main className="max-w-4xl mx-auto px-6 py-12">
       <AdminHeader />
       <h1 className="page-heading mb-6">Edit read</h1>
       <EditReadForm read={read} />

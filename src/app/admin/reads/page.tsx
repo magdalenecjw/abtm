@@ -9,7 +9,7 @@ export default async function AdminReadsPage() {
   const reads = await getAllReadsForAdmin();
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-12 md:px-8">
+    <main className="max-w-4xl mx-auto px-6 py-12 md:px-8">
       <AdminHeader />
       <h1 className="page-heading mb-6">My Reads</h1>
 

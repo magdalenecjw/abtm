@@ -14,7 +14,7 @@ export default async function BookDetailPage({
 
   if (!book) {
     return (
-      <main className="max-w-3xl mx-auto px-6 py-12">
+      <main className="max-w-4xl mx-auto px-6 py-12">
         <AdminHeader />
         <p>This book could not be found.</p>
       </main>
@@ -24,7 +24,7 @@ export default async function BookDetailPage({
   const history = await getLoanHistoryForBook(id);
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-12">
+    <main className="max-w-4xl mx-auto px-6 py-12">
       <AdminHeader />
       <h1 className="page-heading mb-1">{book.title}</h1>
       <p className="mb-6 text-sm">book_id: {book.bookIdCode}</p>

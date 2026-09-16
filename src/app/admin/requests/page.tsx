@@ -24,7 +24,7 @@ export default async function AdminRequestsPage({
   const requests = filterRequests(allRequests, filters);
 
   return (
-    <main className="max-w-6xl mx-auto px-6 py-12 md:px-8">
+    <main className="max-w-4xl mx-auto px-6 py-12 md:px-8">
       <AdminHeader />
       <h1 className="page-heading mb-6">Requests</h1>
 

@@ -18,7 +18,7 @@ export default async function CataloguePage({
   const books = await getActiveBooks(q);
 
   return (
-    <main className="max-w-5xl mx-auto px-6 py-12 md:px-8">
+    <main className="max-w-4xl mx-auto px-6 py-12 md:px-8">
       <SiteHeader />
 
       <form action="/" method="get" className="mb-10 flex gap-2 max-w-md">

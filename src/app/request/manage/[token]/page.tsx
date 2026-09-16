@@ -16,7 +16,7 @@ export default async function ManageRequestPage({
   const result = await getRequestStatusByToken(token);
 
   return (
-    <main className="max-w-md mx-auto px-6 py-16">
+    <main className="max-w-4xl mx-auto px-6 py-16">
       <AppBrand />
       <h1 className="page-heading mb-6 mt-6">Your request</h1>
 

@@ -35,7 +35,7 @@ export default async function AdminBooksPage({
   });
 
   return (
-    <main className="max-w-5xl mx-auto px-6 py-12 md:px-8">
+    <main className="max-w-4xl mx-auto px-6 py-12 md:px-8">
       <AdminHeader />
       <h1 className="page-heading mb-6">Books</h1>
 
