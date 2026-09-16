@@ -4,7 +4,7 @@ import { HelpButton } from "./help-button";
 
 export function SiteHeader() {
   return (
-    <header className="flex items-center justify-between mb-10">
+    <header className="mb-10">
       <Link href="/" className="flex items-center gap-3">
         <Image
           src="/logo-icon.png"
@@ -17,7 +17,7 @@ export function SiteHeader() {
           (automated) book teller machine
         </span>
       </Link>
-      <nav className="flex items-center gap-6 text-sm">
+      <nav className="flex items-center gap-6 text-sm mt-4 pt-4 border-t border-[var(--rule)]">
         <Link href="/" className="text-link">
           Catalogue
         </Link>
