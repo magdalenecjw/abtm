@@ -1,26 +1,253 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #faf6ef;
+  --foreground: #2b2925;
+
+  --rule: #d9d3c7;
+  --accent: #8a9a7e;
+
+  --available: #3b5d45;
+  --checked-out: #c08a3e;
+  --on-loan: #c1704f;
+
+  --terracotta: #a85838;
+
+  --spine-light: #f2ede4;
+  --spine-dark: #ede7dc;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-caslon);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+/* Typography */
+
+.font-caslon {
+  font-family: var(--font-caslon), serif;
+  font-weight: 400;
+}
+
+.page-heading {
+  font-family: var(--font-caslon), serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.book-title {
+  font-family: var(--font-caslon), serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+/* Rules */
+
+.hairline {
+  border-color: var(--rule);
+}
+
+/* Links */
+
+.text-link {
+  color: var(--foreground);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+  transition: color 150ms ease;
+}
+
+.text-link:hover {
+  color: var(--accent);
+}
+
+/* Buttons */
+
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: var(--accent);
+  color: var(--background);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.primary-button:hover {
+  background: #7c8d71;
+  border-color: #7c8d71;
+}
+
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.secondary-button:hover {
+  background: var(--accent);
+  color: var(--background);
+}
+
+.destructive-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--terracotta);
+  border-radius: 3px;
+  background: var(--terracotta);
+  color: var(--background);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* Forms */
+
+.search-input {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--foreground);
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.search-input::placeholder {
+  color: #7d786f;
+}
+
+.search-input:focus {
+  border-color: var(--accent);
+}
+
+/* Book spines */
+
+.book-spine {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--foreground);
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.book-spine:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.book-spine:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Status */
+
+.status-available {
+  color: var(--available);
+}
+
+.status-checked-out {
+  color: var(--checked-out);
+}
+
+.status-on-loan {
+  color: var(--on-loan);
+}
+
+/* Modal */
+
+.modal-scrim {
+  animation: abtm-fade-in 160ms ease-out;
+  background: rgb(43 41 37 / 48%);
+}
+
+.modal-panel {
+  animation: abtm-fade-in 160ms ease-out;
+  background: var(--background);
+}
+
+@keyframes abtm-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Keep motion subtle and accessible */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
