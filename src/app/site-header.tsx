@@ -25,6 +25,9 @@ export function SiteHeader() {
           My Reads
         </Link>
         <HelpButton />
+        <Link href="/admin" className="text-link ml-auto opacity-60 text-xs">
+          Admin
+        </Link>
       </nav>
     </header>
   );
