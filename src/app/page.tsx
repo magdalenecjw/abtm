@@ -11,16 +11,25 @@ import { CatalogueGrid } from "./catalogue-grid";
 // JavaScript. searchParams is a Promise in Next.js 16 and must be
 // awaited (confirmed against the installed Next.js version's own
 // docs, since this API shape has changed across versions).
+
 export default async function CataloguePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; openBook?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, openBook } = await searchParams;
   const books = await getActiveBooks(q);
 
   return (
     <main className="p-8">
+      <nav className="mb-4">
+        <Link href="/" className="mr-4 underline">
+          Catalogue
+        </Link>
+        <Link href="/reads" className="underline">
+          My Reads
+        </Link>
+      </nav>
       <h1 className="text-2xl mb-6">Catalogue</h1>
 
       <form action="/" method="get" className="mb-6">
@@ -52,7 +61,7 @@ export default async function CataloguePage({
             : "No books in the catalogue yet."}
         </p>
       ) : (
-        <CatalogueGrid books={books} />
+        <CatalogueGrid books={books} initialOpenBookId={openBook} />
       )}
     </main>
   );

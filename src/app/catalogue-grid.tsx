@@ -20,7 +20,13 @@ type ModalView = "details" | "borrowing";
 // spec — click-outside/Escape close the details view, but are
 // disabled during the passcode/form borrowing steps (in-progress
 // data at risk), leaving only the explicit × button.
-export function CatalogueGrid({ books }: { books: CatalogueBook[] }) {
+export function CatalogueGrid({
+  books,
+  initialOpenBookId,
+}: {
+  books: CatalogueBook[];
+  initialOpenBookId?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<BookDetail | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -37,6 +43,14 @@ export function CatalogueGrid({ books }: { books: CatalogueBook[] }) {
       setSelected(detail);
     });
   }
+
+  // Supports linking here from another page (e.g. My Reads §1.2:
+  // an "Owned" entry links through to this same modal via catalogue
+  // navigation, not a distinct URL) with ?openBook={id} in the URL.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- deriving initial state from a URL-sourced prop at mount (opening the modal for a book linked from another page) is the intended one-time initialization here, not a repeated sync loop.
+    if (initialOpenBookId) openBook(initialOpenBookId);
+  }, [initialOpenBookId]);
 
   function close() {
     if (blockEasyClose) return;
