@@ -103,7 +103,7 @@ export function CatalogueGrid({
               }}
               className="book-spine flex items-end justify-center w-24 p-3 text-center"
             >
-              <span className="book-title line-clamp-4">
+              <span className="font-caslon text-sm leading-snug line-clamp-4 break-words w-full">
                 {getSpineTitle(book.title)}
               </span>
             </button>
