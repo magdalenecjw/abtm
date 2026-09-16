@@ -16,8 +16,6 @@ type ConfirmationData = {
   managementToken: string;
 };
 
-// Visual treatment intentionally deferred — see docs/visual-system.md,
-// which is not yet applied here (Phase 6 of the build).
 export function BorrowFlow({
   bookUuid,
   onStepChange,
@@ -156,7 +154,7 @@ export function BorrowFlow({
   if (step === "passcode") {
     return (
       <form onSubmit={handlePasscodeSubmit}>
-        <h2 className="text-xl mb-2">Enter the borrow passcode</h2>
+        <h2 className="book-title text-xl mb-4">Enter the borrow passcode</h2>
         <label htmlFor="passcode" className="sr-only">
           Passcode
         </label>
@@ -166,18 +164,18 @@ export function BorrowFlow({
           value={passcode}
           onChange={(e) => setPasscode(e.target.value)}
           disabled={isPending}
-          className="border border-gray-400 px-2 py-1"
+          className="search-input"
         />
         {passcodeError && (
-          <p role="alert" className="text-sm mt-1">
+          <p className="text-sm mt-2 text-[var(--terracotta)]" role="alert">
             {passcodeError}
           </p>
         )}
-        <div className="mt-3">
-          <button type="submit" disabled={isPending}>
+        <div className="mt-5 flex gap-2">
+          <button type="submit" disabled={isPending} className="primary-button">
             {isPending ? "Checking…" : "Submit"}
           </button>
-          <button type="button" onClick={onClose} className="ml-2">
+          <button type="button" onClick={onClose} className="secondary-button">
             Cancel
           </button>
         </div>
@@ -188,9 +186,9 @@ export function BorrowFlow({
   if (step === "form") {
     return (
       <form onSubmit={handleFormSubmit}>
-        <h2 className="text-xl mb-2">Request to borrow</h2>
+        <h2 className="book-title text-xl mb-4">Request to borrow</h2>
 
-        <label htmlFor="realName">
+        <label htmlFor="realName" className="text-sm">
           Your name (private, not shown publicly)
         </label>
         <input
@@ -198,15 +196,15 @@ export function BorrowFlow({
           value={realName}
           onChange={(e) => setRealName(e.target.value)}
           disabled={isPending}
-          className="border border-gray-400 px-2 py-1 block mb-1"
+          className="search-input block mt-1 mb-1"
         />
         {realNameError && (
-          <p role="alert" className="text-sm mb-2">
+          <p className="text-sm mb-2 text-[var(--terracotta)]" role="alert">
             {realNameError}
           </p>
         )}
 
-        <label htmlFor="nickname">
+        <label htmlFor="nickname" className="text-sm">
           Nickname (shown publicly while book is on loan)
         </label>
         <input
@@ -214,25 +212,29 @@ export function BorrowFlow({
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           disabled={isPending}
-          className="border border-gray-400 px-2 py-1 block mb-1"
+          className="search-input block mt-1 mb-1"
         />
         {nicknameError && (
-          <p role="alert" className="text-sm mb-2">
+          <p className="text-sm mb-2 text-[var(--terracotta)]" role="alert">
             {nicknameError}
           </p>
         )}
 
         {formError && (
-          <p role="alert" className="text-sm mb-2">
+          <p className="text-sm mb-2 text-[var(--terracotta)]" role="alert">
             {formError}
           </p>
         )}
 
-        <div className="mt-3">
-          <button type="submit" disabled={isPending}>
+        <div className="mt-5 flex gap-2">
+          <button
+            type="submit"
+            disabled={isPending}
+            className="primary-button"
+          >
             {isPending ? "Submitting…" : "Submit request"}
           </button>
-          <button type="button" onClick={onClose} className="ml-2">
+          <button type="button" onClick={onClose} className="secondary-button">
             Cancel
           </button>
         </div>
@@ -249,31 +251,43 @@ export function BorrowFlow({
 
   return (
     <div>
-      <h2 className="text-xl mb-2">Request submitted</h2>
+      <h2 className="book-title text-xl mb-4">Request submitted</h2>
 
       {!cancelled && (
-        <div role="alert" className="border border-gray-400 p-2 mb-3 text-sm">
+        <div
+          role="alert"
+          className="border border-[var(--terracotta)] rounded-[3px] p-3 mb-4 text-sm"
+        >
           Save this link now — it will not be shown again. If you lose it,
           contact the library owner directly to request a new one.
         </div>
       )}
 
       {cancelled ? (
-        <p>{cancelMessage}</p>
+        <p className="text-sm">{cancelMessage}</p>
       ) : (
         <>
-          <p className="mb-2 break-all">{link}</p>
-          <button type="button" onClick={handleCopyLink}>
+          <p className="mb-3 break-all text-sm">{link}</p>
+          <button type="button" onClick={handleCopyLink} className="secondary-button">
             {copied ? "Copied!" : "Copy link"}
           </button>
 
-          <p className="mt-3">
+          <p className="mt-4 text-sm">
             {formatQueuePosition(confirmation.queuePosition)}
           </p>
 
-          {cancelMessage && <p role="alert">{cancelMessage}</p>}
+          {cancelMessage && (
+            <p className="text-sm mt-2 text-[var(--terracotta)]" role="alert">
+              {cancelMessage}
+            </p>
+          )}
 
-          <button type="button" onClick={handleCancel} disabled={isPending}>
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={isPending}
+            className="destructive-button mt-4"
+          >
             Cancel request
           </button>
         </>

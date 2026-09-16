@@ -33,10 +33,19 @@ export function CancelButton({ token }: { token: string }) {
 
   return (
     <div>
-      <button type="button" onClick={handleCancel} disabled={isPending}>
+      <button
+        type="button"
+        onClick={handleCancel}
+        disabled={isPending}
+        className="destructive-button"
+      >
         {isPending ? "Cancelling…" : "Cancel request"}
       </button>
-      {message && <p role="alert">{message}</p>}
+      {message && (
+        <p className="text-sm mt-2 text-[var(--terracotta)]" role="alert">
+          {message}
+        </p>
+      )}
     </div>
   );
 }
