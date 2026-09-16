@@ -101,9 +101,15 @@ export function CatalogueGrid({
                 height: `${getSpineHeight(book.id)}px`,
                 background: i % 2 === 0 ? "var(--spine-light)" : "var(--spine-dark)",
               }}
-              className="book-spine flex items-end justify-center w-24 p-3 text-center"
+              className="book-spine flex items-end justify-center w-32 p-3 text-center"
             >
-              <span className="font-caslon text-sm leading-snug line-clamp-4 break-words [hyphens:auto] w-full">
+              {/* hyphens: auto was tried here but doesn't reliably work
+                  inside -webkit-line-clamp (a documented WebKit
+                  limitation — line-clamp uses a different internal
+                  layout mode than normal text flow, so hyphenation
+                  insertion gets skipped). Widening the spine (above)
+                  instead reduces how often a word doesn't fit at all. */}
+              <span className="font-caslon text-sm leading-snug line-clamp-4 break-words w-full">
                 {getSpineTitle(book.title)}
               </span>
             </button>
