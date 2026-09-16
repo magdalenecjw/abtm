@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { getSpineTitle } from "@/lib/catalogue/spine-title";
+import { getSpineTitle, getSpineHeight } from "@/lib/catalogue/spine-title";
 import { getBookDetail, type BookDetail } from "./actions";
 import type { CatalogueBook } from "@/lib/catalogue/books";
 import { BorrowFlow, type BorrowStep } from "./borrow-flow";
@@ -12,14 +12,18 @@ const STATUS_LABEL: Record<BookDetail["status"], string> = {
   on_loan: "On loan",
 };
 
+const STATUS_CLASS: Record<BookDetail["status"], string> = {
+  available: "status-available",
+  checked_out: "status-checked-out",
+  on_loan: "status-on-loan",
+};
+
 type ModalView = "details" | "borrowing";
 
-// Visual treatment intentionally deferred — see docs/visual-system.md,
-// which is not yet applied here (Phase 6 of the build). Behavioral
-// rule that IS implemented: visual-system.md §6's closing-behavior
-// spec — click-outside/Escape close the details view, but are
-// disabled during the passcode/form borrowing steps (in-progress
-// data at risk), leaving only the explicit × button.
+// Behavioral rule implemented per visual-system.md §6: click-outside/
+// Escape close the details view, but are disabled during the
+// passcode/form borrowing steps (in-progress data at risk), leaving
+// only the explicit × button.
 export function CatalogueGrid({
   books,
   initialOpenBookId,
@@ -81,15 +85,27 @@ export function CatalogueGrid({
 
   return (
     <>
-      <ul className="flex flex-wrap gap-4 list-none p-0">
-        {books.map((book) => (
+      {/* Book spines: uniform width, height varies per book, horizontal
+          title text, alternating neutral fills so spines don't read as
+          identical clones — per visual-system.md §7. Long-title
+          handling: colon-truncation happens in getSpineTitle (a text
+          transform); the remaining CSS-only rules (wrap up to a max
+          height, then ellipsis) are handled here with line-clamp. */}
+      <ul className="flex flex-wrap items-end gap-4 list-none p-0">
+        {books.map((book, i) => (
           <li key={book.id}>
             <button
               type="button"
               onClick={() => openBook(book.id)}
-              className="flex items-end justify-center w-24 h-40 border border-gray-400 p-2 text-center text-sm"
+              style={{
+                height: `${getSpineHeight(book.id)}px`,
+                background: i % 2 === 0 ? "var(--spine-light)" : "var(--spine-dark)",
+              }}
+              className="book-spine flex items-end justify-center w-24 p-3 text-center"
             >
-              {getSpineTitle(book.title)}
+              <span className="book-title line-clamp-4">
+                {getSpineTitle(book.title)}
+              </span>
             </button>
           </li>
         ))}
@@ -99,20 +115,20 @@ export function CatalogueGrid({
         <div
           role="presentation"
           onClick={close}
-          className="fixed inset-0 flex items-center justify-center bg-black/50 p-4"
+          className="modal-scrim fixed inset-0 flex items-center justify-center p-4 z-30"
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-label="Book details"
             onClick={(e) => e.stopPropagation()}
-            className="bg-white max-w-md w-full p-6 relative"
+            className="modal-panel max-w-md w-full p-6 relative rounded-[3px] border border-[var(--rule)]"
           >
             <button
               type="button"
               onClick={forceClose}
               aria-label="Close"
-              className="absolute top-2 right-2"
+              className="absolute top-3 right-3 text-lg leading-none hover:text-[var(--accent)]"
             >
               ×
             </button>
@@ -132,17 +148,21 @@ export function CatalogueGrid({
                       <img
                         src={selected.coverUrl}
                         alt={`Cover of ${selected.title}`}
-                        className="w-32 mb-3"
+                        className="w-32 mb-4 rounded-[3px] border border-[var(--rule)]"
                       />
                     )}
-                    <h2 className="text-xl mb-1">{selected.title}</h2>
+                    <h2 className="book-title text-2xl mb-2">
+                      {selected.title}
+                    </h2>
                     <p className="mb-1">By {selected.author}</p>
-                    <p className="mb-1">{selected.genre}</p>
+                    <p className="mb-1 text-sm">{selected.genre}</p>
                     {selected.notes && (
-                      <p className="mb-3">{selected.notes}</p>
+                      <p className="mb-4 text-sm">{selected.notes}</p>
                     )}
 
-                    <p className="font-medium">
+                    <p
+                      className={`text-sm font-medium mb-4 ${STATUS_CLASS[selected.status]}`}
+                    >
                       {STATUS_LABEL[selected.status]}
                     </p>
 
@@ -153,13 +173,17 @@ export function CatalogueGrid({
                         requested or on loan. Only an inactive book
                         (which wouldn't appear in the catalogue at all)
                         has no valid request path. */}
-                    <button type="button" onClick={() => setView("borrowing")}>
+                    <button
+                      type="button"
+                      onClick={() => setView("borrowing")}
+                      className="primary-button"
+                    >
                       Request to borrow
                     </button>
 
                     {selected.status === "on_loan" &&
                       selected.currentBorrowerNickname && (
-                        <p>
+                        <p className="mt-3 text-sm">
                           On loan to {selected.currentBorrowerNickname}
                           {selected.loanStartedAt &&
                             ` since ${new Date(selected.loanStartedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}`}

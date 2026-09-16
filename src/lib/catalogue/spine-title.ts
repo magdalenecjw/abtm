@@ -16,3 +16,21 @@ export function getSpineTitle(title: string): string {
   if (colonIndex === -1) return title;
   return title.slice(0, colonIndex).trim();
 }
+
+/**
+ * Deterministic pseudo-random spine height for shelf variety, per
+ * visual-system.md §7 ("height varies per book" — the reverse of a
+ * traditional book spine, which is a deliberate design choice for
+ * this generic-spine treatment). Based on a simple hash of the
+ * book's id, so it's stable across re-renders rather than jumping
+ * around randomly.
+ */
+export function getSpineHeight(bookId: string): number {
+  let hash = 0;
+  for (let i = 0; i < bookId.length; i++) {
+    hash = (hash * 31 + bookId.charCodeAt(i)) | 0;
+  }
+  const MIN = 150;
+  const MAX = 210;
+  return MIN + (Math.abs(hash) % (MAX - MIN));
+}
