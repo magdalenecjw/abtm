@@ -9,9 +9,11 @@ export function LoginForm() {
   const [state, formAction, pending] = useActionState(login, initialState);
 
   return (
-    <form action={formAction} noValidate>
+    <form action={formAction} noValidate className="flex flex-col gap-3">
       <div>
-        <label htmlFor="email">Email</label>
+        <label htmlFor="email" className="text-sm block mb-1">
+          Email
+        </label>
         <input
           id="email"
           name="email"
@@ -19,10 +21,13 @@ export function LoginForm() {
           required
           autoComplete="username"
           disabled={pending}
+          className="search-input"
         />
       </div>
       <div>
-        <label htmlFor="password">Password</label>
+        <label htmlFor="password" className="text-sm block mb-1">
+          Password
+        </label>
         <input
           id="password"
           name="password"
@@ -30,10 +35,15 @@ export function LoginForm() {
           required
           autoComplete="current-password"
           disabled={pending}
+          className="search-input"
         />
       </div>
-      {state.error && <p role="alert">{state.error}</p>}
-      <button type="submit" disabled={pending}>
+      {state.error && (
+        <p className="text-sm text-[var(--terracotta)]" role="alert">
+          {state.error}
+        </p>
+      )}
+      <button type="submit" disabled={pending} className="primary-button self-start">
         {pending ? "Signing in…" : "Sign in"}
       </button>
     </form>

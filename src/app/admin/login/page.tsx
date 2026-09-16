@@ -1,11 +1,9 @@
 import { LoginForm } from "./login-form";
 
-// Visual treatment intentionally deferred — see docs/visual-system.md,
-// which is not yet applied anywhere in the app (Phase 6 of the build).
 export default function AdminLoginPage() {
   return (
-    <main>
-      <h1>Admin login</h1>
+    <main className="max-w-sm mx-auto px-6 py-20">
+      <h1 className="page-heading mb-6">Admin login</h1>
       <LoginForm />
     </main>
   );
