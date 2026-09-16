@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateRead, type ReadDetail } from "../../actions";
+import { BookPicker } from "@/app/admin/book-picker";
 
 // Visual treatment intentionally deferred — see docs/visual-system.md,
 // which is not yet applied here (Phase 6 of the build).
@@ -109,14 +110,11 @@ export function EditReadForm({ read }: { read: ReadDetail }) {
         <option value="NLB">NLB</option>
       </select>
 
-      <label htmlFor="bookIdCode">
-        Linked book_id (e.g. BK0001 — leave blank to unlink)
-      </label>
-      <input
-        id="bookIdCode"
+      <label htmlFor="bookIdCode">Linked book (leave blank to unlink)</label>
+      <BookPicker
         value={bookIdCode}
-        onChange={(e) => setBookIdCode(e.target.value)}
-        className="border border-gray-400 px-2 py-1"
+        onChange={setBookIdCode}
+        disabled={isPending}
       />
 
       {error && (

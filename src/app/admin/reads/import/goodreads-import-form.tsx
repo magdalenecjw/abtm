@@ -8,6 +8,7 @@ import {
   type GoodreadsApplyResult,
 } from "./actions";
 import type { GoodreadsMatchResult } from "@/lib/goodreads/match";
+import { BookPicker } from "@/app/admin/book-picker";
 
 type RowState = {
   match: GoodreadsMatchResult;
@@ -167,13 +168,12 @@ export function GoodreadsImportForm() {
                   </td>
                   <td className="p-2">
                     {r.source === "Owned" && (
-                      <input
+                      <BookPicker
                         value={r.bookIdCode}
-                        onChange={(e) =>
-                          updateRow(i, { bookIdCode: e.target.value })
+                        onChange={(code) =>
+                          updateRow(i, { bookIdCode: code })
                         }
                         disabled={isPending}
-                        className="border border-gray-400 px-1"
                       />
                     )}
                   </td>
