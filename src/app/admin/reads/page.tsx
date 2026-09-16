@@ -13,6 +13,12 @@ export default async function AdminReadsPage() {
     <main className="p-8">
       <h1 className="text-2xl mb-6">My Reads</h1>
 
+      <p className="mb-4">
+        <Link href="/admin/reads/import" className="underline">
+          Import from Goodreads
+        </Link>
+      </p>
+
       {reads.length === 0 ? (
         <p>No reads yet. Import from Goodreads to add some.</p>
       ) : (
