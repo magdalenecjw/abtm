@@ -121,14 +121,14 @@ export function CatalogueGrid({
         <div
           role="presentation"
           onClick={close}
-          className="modal-scrim fixed inset-0 flex items-center justify-center p-4 z-30"
+          className="modal-scrim fixed inset-0 flex items-center justify-center p-0 sm:p-4 z-30"
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-label="Book details"
             onClick={(e) => e.stopPropagation()}
-            className="modal-panel max-w-md w-full p-6 relative rounded-[3px] border border-[var(--rule)]"
+            className="modal-panel w-full h-full sm:h-auto sm:max-w-md p-6 relative sm:rounded-[3px] sm:border sm:border-[var(--rule)] overflow-y-auto"
           >
             <button
               type="button"

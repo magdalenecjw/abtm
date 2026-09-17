@@ -141,7 +141,15 @@ export function GoodreadsImportForm() {
             {phase.alreadyImportedCount}
           </p>
 
-          <table className="w-full text-sm border-collapse mb-4">
+          {/* This table has many interactive controls per row (select,
+              book picker, inputs) — duplicating all of them into a
+              separate mobile card layout would be complex and risky
+              to get right without live testing. Since this is an
+              occasional-use admin screen (not a frequently-used daily
+              tool like Requests/Books/My Reads), a horizontal-scroll
+              wrapper is a reasonable, lower-risk exception here. */}
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm border-collapse mb-4 min-w-[700px]">
             <thead>
               <tr className="border-b border-[var(--rule)] text-left">
                 <th className="p-2">Include</th>
@@ -218,6 +226,7 @@ export function GoodreadsImportForm() {
               ))}
             </tbody>
           </table>
+          </div>
 
           <div className="flex gap-2">
             <button

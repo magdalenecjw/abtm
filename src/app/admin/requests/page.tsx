@@ -98,40 +98,74 @@ export default async function AdminRequestsPage({
       {requests.length === 0 ? (
         <p>No requests match these filters.</p>
       ) : (
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="border-b border-[var(--rule)] text-left">
-              <th className="p-2">Book</th>
-              <th className="p-2">Requester</th>
-              <th className="p-2">Nickname</th>
-              <th className="p-2">Requested</th>
-              <th className="p-2">Status</th>
-              <th className="p-2">Flag</th>
-              <th className="p-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((r) => (
-              <tr key={r.id} className="border-b border-[var(--rule)]">
-                <td className="p-2">
-                  {r.bookTitle} ({r.bookIdCode})
-                </td>
-                <td className="p-2">{r.realName}</td>
-                <td className="p-2">{r.nickname}</td>
-                <td className="p-2">
-                  {new Date(r.requestedAt).toLocaleDateString()}
-                </td>
-                <td className="p-2">{r.status}</td>
-                <td className="p-2">
-                  {r.attentionFlag ? FLAG_LABEL[r.attentionFlag] : ""}
-                </td>
-                <td className="p-2">
-                  <RequestRowActions request={r} />
-                </td>
+        <>
+          {/* Desktop/tablet: table */}
+          <table className="hidden sm:table w-full text-sm border-collapse">
+            <thead>
+              <tr className="border-b border-[var(--rule)] text-left">
+                <th className="p-2">Book</th>
+                <th className="p-2">Requester</th>
+                <th className="p-2">Nickname</th>
+                <th className="p-2">Requested</th>
+                <th className="p-2">Status</th>
+                <th className="p-2">Flag</th>
+                <th className="p-2">Actions</th>
               </tr>
+            </thead>
+            <tbody>
+              {requests.map((r) => (
+                <tr key={r.id} className="border-b border-[var(--rule)]">
+                  <td className="p-2">
+                    {r.bookTitle} ({r.bookIdCode})
+                  </td>
+                  <td className="p-2">{r.realName}</td>
+                  <td className="p-2">{r.nickname}</td>
+                  <td className="p-2">
+                    {new Date(r.requestedAt).toLocaleDateString()}
+                  </td>
+                  <td className="p-2">{r.status}</td>
+                  <td className="p-2">
+                    {r.attentionFlag ? FLAG_LABEL[r.attentionFlag] : ""}
+                  </td>
+                  <td className="p-2">
+                    <RequestRowActions request={r} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Mobile: stacked card per row, per visual-system.md §8 */}
+          <div className="sm:hidden flex flex-col gap-4">
+            {requests.map((r) => (
+              <div
+                key={r.id}
+                className="border border-[var(--rule)] rounded-[3px] p-4"
+              >
+                <p className="book-title text-base mb-1">
+                  {r.bookTitle} ({r.bookIdCode})
+                </p>
+                <dl className="text-sm grid grid-cols-[90px_1fr] gap-y-1 mb-3">
+                  <dt className="opacity-70">Requester</dt>
+                  <dd>{r.realName}</dd>
+                  <dt className="opacity-70">Nickname</dt>
+                  <dd>{r.nickname}</dd>
+                  <dt className="opacity-70">Requested</dt>
+                  <dd>{new Date(r.requestedAt).toLocaleDateString()}</dd>
+                  <dt className="opacity-70">Status</dt>
+                  <dd>{r.status}</dd>
+                  {r.attentionFlag && (
+                    <>
+                      <dt className="opacity-70">Flag</dt>
+                      <dd>{FLAG_LABEL[r.attentionFlag]}</dd>
+                    </>
+                  )}
+                </dl>
+                <RequestRowActions request={r} />
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </>
       )}
     </main>
   );

@@ -74,7 +74,8 @@ export default async function AdminBooksPage({
         </button>
       </form>
 
-      <table className="w-full text-sm border-collapse">
+      {/* Desktop/tablet: table */}
+      <table className="hidden sm:table w-full text-sm border-collapse">
         <thead>
           <tr className="border-b border-[var(--rule)] text-left">
             <th className="p-2">book_id</th>
@@ -108,6 +109,32 @@ export default async function AdminBooksPage({
           ))}
         </tbody>
       </table>
+
+      {/* Mobile: stacked card per row, per visual-system.md §8 */}
+      <div className="sm:hidden flex flex-col gap-3">
+        {books.map((b) => (
+          <Link
+            key={b.id}
+            href={`/admin/books/${b.id}`}
+            className="block border border-[var(--rule)] rounded-[3px] p-4"
+          >
+            <p className="book-title text-base mb-1">
+              {b.title} ({b.bookIdCode})
+            </p>
+            <p className="text-sm mb-2">{b.author}</p>
+            <dl className="text-sm grid grid-cols-[70px_1fr] gap-y-1">
+              <dt className="opacity-70">Genre</dt>
+              <dd>{b.genre}</dd>
+              <dt className="opacity-70">Status</dt>
+              <dd className={`font-medium ${STATUS_CLASS[b.status]}`}>
+                {STATUS_LABEL[b.status]}
+              </dd>
+              <dt className="opacity-70">Active</dt>
+              <dd>{b.active ? "Yes" : "No"}</dd>
+            </dl>
+          </Link>
+        ))}
+      </div>
 
       {books.length === 0 && <p className="mt-4">No books match these filters.</p>}
     </main>
