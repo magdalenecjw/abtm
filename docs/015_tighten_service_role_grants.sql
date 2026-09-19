@@ -32,4 +32,8 @@ revoke delete on public.loan_requests from service_role;
 
 revoke delete on public.verification_tokens from service_role;
 
-revoke
+revoke update, delete on public.passcode_attempts from service_role;
+
+-- ------------------------------------------------------------
+-- End
+-- ------------------------------------------------------------
