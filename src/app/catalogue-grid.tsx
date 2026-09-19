@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { getSpineTitle, getSpineHeight } from "@/lib/catalogue/spine-title";
 import { getBookDetail, type BookDetail } from "./actions";
 import type { CatalogueBook } from "@/lib/catalogue/books";
@@ -36,8 +36,11 @@ export function CatalogueGrid({
   const [isPending, startTransition] = useTransition();
   const [view, setView] = useState<ModalView>("details");
   const [blockEasyClose, setBlockEasyClose] = useState(false);
+  const modalPanelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
-  function openBook(id: string) {
+  function openBook(id: string, trigger?: HTMLElement) {
+    if (trigger) triggerRef.current = trigger;
     setOpen(true);
     setSelected(null);
     setView("details");
@@ -47,6 +50,19 @@ export function CatalogueGrid({
       setSelected(detail);
     });
   }
+
+  // Accessibility: move keyboard focus into the modal panel when it
+  // opens, and restore it to whatever triggered the open when it
+  // closes — without this, focus silently stays on/near the
+  // now-hidden spine button, forcing keyboard users to tab through
+  // the rest of the grid before ever reaching the modal.
+  useEffect(() => {
+    if (open) {
+      modalPanelRef.current?.focus();
+    } else {
+      triggerRef.current?.focus();
+    }
+  }, [open]);
 
   // Supports linking here from another page (e.g. My Reads §1.2:
   // an "Owned" entry links through to this same modal via catalogue
@@ -96,7 +112,7 @@ export function CatalogueGrid({
           <li key={book.id}>
             <button
               type="button"
-              onClick={() => openBook(book.id)}
+              onClick={(e) => openBook(book.id, e.currentTarget)}
               style={{
                 height: `${getSpineHeight(book.id)}px`,
                 background: i % 2 === 0 ? "var(--spine-light)" : "var(--spine-dark)",
@@ -124,9 +140,11 @@ export function CatalogueGrid({
           className="modal-scrim fixed inset-0 flex items-center justify-center p-0 sm:p-4 z-30"
         >
           <div
+            ref={modalPanelRef}
             role="dialog"
             aria-modal="true"
             aria-label="Book details"
+            tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
             className="modal-panel w-full h-full sm:h-auto sm:max-w-md p-6 relative sm:rounded-[3px] sm:border sm:border-[var(--rule)] overflow-y-auto"
           >

@@ -5,11 +5,11 @@
   --foreground: #2b2925;
 
   --rule: #d9d3c7;
-  --accent: #8a9a7e;
+  --accent: #697560;
 
   --available: #3b5d45;
-  --checked-out: #c08a3e;
-  --on-loan: #c1704f;
+  --checked-out: #92692f;
+  --on-loan: #a45f43;
 
   --terracotta: #a85838;
 
@@ -119,8 +119,8 @@ a {
 }
 
 .primary-button:hover {
-  background: #7c8d71;
-  border-color: #7c8d71;
+  background: #596352;
+  border-color: #596352;
 }
 
 .secondary-button {
@@ -181,6 +181,8 @@ a {
 
 .search-input:focus {
   border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 /* Book spines */
@@ -272,5 +274,5 @@ a {
 }
 
 .file-input::file-selector-button:hover {
-  background: #7c8d71;
+  background: #596352;
 }
