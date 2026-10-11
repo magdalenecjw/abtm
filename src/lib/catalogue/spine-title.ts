@@ -9,7 +9,7 @@
  *
  * Rules 2-3 (a single vertical line that ends in an ellipsis if it runs
  * past the spine's height; short titles fitting naturally) are CSS
- * concerns, not a text transformation — see .book-spine in globals.css.
+ * concerns, not a text transformation — see .spine-title in globals.css.
  */
 export function getSpineTitle(title: string): string {
   const colonIndex = title.indexOf(":");
@@ -32,18 +32,6 @@ export function hashString(value: string, salt = ""): number {
     hash = (hash * 31 + input.charCodeAt(i)) | 0;
   }
   return Math.abs(hash);
-}
-
-/**
- * @deprecated Superseded by getSpineStyle (visual-system.md §7.2, October
- * 2026 redesign). Kept only so the current horizontal-spine grid keeps
- * working until catalogue-grid.tsx switches over in the next stage;
- * remove it then.
- */
-export function getSpineHeight(bookId: string): number {
-  const MIN = 150;
-  const MAX = 210;
-  return MIN + (hashString(bookId) % (MAX - MIN));
 }
 
 /**

@@ -8,25 +8,6 @@ const TYPE_STEP_MS = 55;
 const TYPE_START_MS = 250;
 
 /**
- * Catalogue hero, per visual-system.md §9.2: library name, the
- * "Please make a withdrawal" headline, and the volume count.
- *
- * The typing effect is pure CSS (see .hero-char in globals.css) rather
- * than a client-side effect, so:
- * - the full headline is in the server-rendered HTML — it works with
- *   JavaScript off and reads correctly to screen readers (aria-label);
- * - there's no flash of the full text before hydration starts typing;
- * - under prefers-reduced-motion every character is simply visible.
- *
- * Each character fades in after `--d` ms; its ::after draws the caret
- * only during its own step, and the last character's caret keeps
- * blinking — so the caret appears to travel with the text.
- *
- * Spaces take one typing step too, giving a natural beat between
- * words. Words are wrapped in nowrap spans so the headline only ever breaks
- * between words on narrow screens.
- */
-/**
  * Splits the headline into words of characters, each tagged with its
  * position in the full string (spaces included), which sets its delay.
  */
@@ -42,6 +23,25 @@ function typedWords(text: string) {
 const HEADLINE_WORDS = typedWords(HEADLINE);
 const LAST_INDEX = HEADLINE.length - 1;
 
+/**
+ * Catalogue hero, per visual-system.md §9.2: library name, the
+ * "Please make a withdrawal" headline, and the volume count.
+ *
+ * The typing effect is pure CSS (see .hero-char in globals.css) rather
+ * than a client-side effect, so:
+ * - the full headline is in the server-rendered HTML — it works with
+ *   JavaScript off and reads correctly to screen readers (aria-label);
+ * - there's no flash of the full text before hydration starts typing;
+ * - under prefers-reduced-motion every character is simply visible.
+ *
+ * Each character fades in after `--d` ms; its ::after draws the caret
+ * only during its own step, and the last character's caret keeps
+ * blinking — so the caret appears to travel with the text.
+ *
+ * Spaces take one typing step too, giving a natural beat between
+ * words. Words are wrapped in nowrap spans so the headline only ever
+ * breaks between words on narrow screens.
+ */
 export function CatalogueHero({ volumeCount }: { volumeCount: string }) {
   return (
     <section className="flex flex-col items-center gap-4 pt-6 pb-10 text-center">

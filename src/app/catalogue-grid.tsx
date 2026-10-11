@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { getSpineTitle, getSpineHeight } from "@/lib/catalogue/spine-title";
 import { getBookDetail, type BookDetail } from "./actions";
 import type { CatalogueBook } from "@/lib/catalogue/books";
 import { BorrowFlow, type BorrowStep } from "./borrow-flow";
+import { Bookshelf } from "./bookshelf";
+import { splitGenres } from "@/lib/catalogue/genres";
 
 const STATUS_LABEL: Record<BookDetail["status"], string> = {
   available: "Available",
@@ -101,37 +102,9 @@ export function CatalogueGrid({
 
   return (
     <>
-      {/* Book spines: uniform width, height varies per book, horizontal
-          title text, alternating neutral fills so spines don't read as
-          identical clones — per visual-system.md §7. Long-title
-          handling: colon-truncation happens in getSpineTitle (a text
-          transform); the remaining CSS-only rules (wrap up to a max
-          height, then ellipsis) are handled here with line-clamp. */}
-      <ul className="flex flex-wrap items-end gap-4 list-none p-0">
-        {books.map((book, i) => (
-          <li key={book.id}>
-            <button
-              type="button"
-              onClick={(e) => openBook(book.id, e.currentTarget)}
-              style={{
-                height: `${getSpineHeight(book.id)}px`,
-                background: i % 2 === 0 ? "var(--spine-light)" : "var(--spine-dark)",
-              }}
-              className="book-spine flex items-end justify-center w-32 p-3 text-center"
-            >
-              {/* hyphens: auto was tried here but doesn't reliably work
-                  inside -webkit-line-clamp (a documented WebKit
-                  limitation — line-clamp uses a different internal
-                  layout mode than normal text flow, so hyphenation
-                  insertion gets skipped). Widening the spine (above)
-                  instead reduces how often a word doesn't fit at all. */}
-              <span className="font-caslon text-sm leading-snug line-clamp-4 break-words w-full">
-                {getSpineTitle(book.title)}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      {/* Shelves of vertical-title spines + hover card — see
+          bookshelf.tsx and visual-system.md §7, §11. */}
+      <Bookshelf books={books} onOpen={openBook} />
 
       {open && (
         <div
@@ -146,7 +119,7 @@ export function CatalogueGrid({
             aria-label="Book details"
             tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
-            className="modal-panel w-full h-full sm:h-auto sm:max-w-md p-6 relative sm:rounded-[3px] sm:border sm:border-[var(--rule)] overflow-y-auto"
+            className="modal-panel w-full h-full sm:h-auto sm:max-w-[560px] p-6 pt-10 relative sm:rounded-[3px] sm:border sm:border-[var(--rule)] overflow-y-auto"
           >
             <button
               type="button"
@@ -166,53 +139,68 @@ export function CatalogueGrid({
                 )}
 
                 {selected && (
-                  <div>
+                  // Cover beside the text on desktop, stacked on mobile
+                  // (visual-system.md §6).
+                  <div
+                    className={
+                      selected.coverUrl
+                        ? "grid gap-6 sm:grid-cols-[112px_1fr]"
+                        : undefined
+                    }
+                  >
                     {selected.coverUrl && (
                       // eslint-disable-next-line @next/next/no-img-element -- external Supabase Storage URL, not a local/optimizable asset
                       <img
                         src={selected.coverUrl}
                         alt={`Cover of ${selected.title}`}
-                        className="w-32 mb-4 rounded-[3px] border border-[var(--rule)]"
+                        className="w-28 rounded-[3px] border border-[var(--rule)]"
                       />
                     )}
-                    <h2 className="book-title text-2xl mb-2">
-                      {selected.title}
-                    </h2>
-                    <p className="mb-1">By {selected.author}</p>
-                    <p className="mb-1 text-sm">{selected.genre}</p>
-                    {selected.notes && (
-                      <p className="mb-4 text-sm">{selected.notes}</p>
-                    )}
+                    <div className="min-w-0">
+                      <h2 className="book-title text-2xl mb-2">
+                        {selected.title}
+                      </h2>
+                      <p className="mb-1">By {selected.author}</p>
+                      <p className="mb-1 text-sm text-[var(--muted)]">
+                        {splitGenres(selected.genre).join(" · ")}
+                      </p>
+                      {selected.notes && (
+                        <p className="mb-4 text-sm">{selected.notes}</p>
+                      )}
 
-                    <p
-                      className={`text-sm font-medium mb-4 ${STATUS_CLASS[selected.status]}`}
-                    >
-                      {STATUS_LABEL[selected.status]}
-                    </p>
+                      {/* Pill badge in the status colour (visual-system.md §6). */}
+                      <p className="mt-3 mb-4">
+                        <span
+                          className={`status-badge ${STATUS_CLASS[selected.status]}`}
+                        >
+                          {STATUS_LABEL[selected.status]}
+                        </span>
+                      </p>
 
-                    {/* Shown regardless of status (available/checked_out/
+                      {/* Shown regardless of status (available/checked_out/
                         on_loan) — the queue mechanism (technical-
                         specifications.md §9) means new borrowers can
                         join the queue even while a book is already
                         requested or on loan. Only an inactive book
                         (which wouldn't appear in the catalogue at all)
                         has no valid request path. */}
-                    <button
-                      type="button"
-                      onClick={() => setView("borrowing")}
-                      className="primary-button"
-                    >
-                      Request to borrow
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => setView("borrowing")}
+                        className="primary-button"
+                      >
+                        Request to borrow
+                      </button>
 
-                    {selected.status === "on_loan" &&
-                      selected.currentBorrowerNickname && (
-                        <p className="mt-3 text-sm">
-                          On loan to {selected.currentBorrowerNickname}
-                          {selected.loanStartedAt &&
-                            ` since ${new Date(selected.loanStartedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}`}
-                        </p>
-                      )}
+                      {selected.status === "on_loan" &&
+                        selected.currentBorrowerNickname && (
+                          <p className="mt-3 text-sm">
+                            On loan to {selected.currentBorrowerNickname}
+                            {selected.loanStartedAt &&
+                              ` since ${new Date(selected.loanStartedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}`}
+                          </p>
+                        )}
+                    </div>
                   </div>
                 )}
               </>
