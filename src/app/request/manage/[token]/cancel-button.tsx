@@ -32,12 +32,12 @@ export function CancelButton({ token }: { token: string }) {
   }
 
   return (
-    <div>
+    <div className="receipt-cancel-wrap">
       <button
         type="button"
         onClick={handleCancel}
         disabled={isPending}
-        className="destructive-button"
+        className="destructive-button receipt-cancel"
       >
         {isPending ? "Cancelling…" : "Cancel request"}
       </button>

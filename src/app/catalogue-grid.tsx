@@ -209,6 +209,7 @@ export function CatalogueGrid({
             {view === "borrowing" && selected && (
               <BorrowFlow
                 bookUuid={selected.id}
+                bookTitle={selected.title}
                 onStepChange={handleBorrowStepChange}
                 onClose={forceClose}
               />

@@ -109,6 +109,8 @@ export type SubmitRequestResult =
       requestId: string;
       queuePosition: number;
       managementToken: string;
+      /** When the request was created — shown on the receipt. */
+      requestedAt: string;
     };
 
 const DUPLICATE_GUARD_WINDOW_MS = 5 * 60 * 1000; // 5 minutes, workflows.md §3.3
@@ -234,7 +236,7 @@ export async function submitBorrowRequest(
       status: "pending",
       management_token_hash: managementTokenHash,
     })
-    .select("id")
+    .select("id, requested_at")
     .single();
 
   if (insertError || !newRequest) {
@@ -252,6 +254,7 @@ export async function submitBorrowRequest(
     requestId: newRequest.id,
     queuePosition: pendingAheadCount ?? 0,
     managementToken: rawManagementToken,
+    requestedAt: newRequest.requested_at,
   };
 }
 
@@ -307,12 +310,19 @@ export async function cancelRequestByToken(
 }
 
 
+/**
+ * What the receipt shows about the borrower's own request
+ * (technical-specifications.md §11): the book's title and when the
+ * request was made. Never any names or collection/return dates.
+ */
+type ReceiptDetails = { bookTitle: string; requestedAt: string };
+
 export type RequestStatusResult =
   | { status: "invalid" }
-  | { status: "pending"; queuePosition: number }
-  | { status: "approved" }
-  | { status: "returned" }
-  | { status: "cancelled" };
+  | ({ status: "pending"; queuePosition: number } & ReceiptDetails)
+  | ({ status: "approved" } & ReceiptDetails)
+  | ({ status: "returned" } & ReceiptDetails)
+  | ({ status: "cancelled" } & ReceiptDetails);
 
 /**
  * Fetches the current status for the borrower management link page
@@ -336,6 +346,20 @@ export async function getRequestStatusByToken(
     return { status: "invalid" };
   }
 
+  // Title for the receipt. The service-role client can read inactive
+  // books too, so a request for a since-deactivated book still shows
+  // its title.
+  const { data: book } = await supabase
+    .from("books")
+    .select("title")
+    .eq("id", request.book_id)
+    .maybeSingle();
+
+  const details: ReceiptDetails = {
+    bookTitle: book?.title ?? "",
+    requestedAt: request.requested_at,
+  };
+
   if (request.status === "pending") {
     // Queue position recalculated fresh each time (technical-
     // specifications.md §9): count of OTHER pending requests for the
@@ -351,10 +375,14 @@ export async function getRequestStatusByToken(
       return { status: "invalid" };
     }
 
-    return { status: "pending", queuePosition: count ?? 0 };
+    return { status: "pending", queuePosition: count ?? 0, ...details };
   }
 
-  if (request.status === "approved") return { status: "approved" };
-  if (request.status === "returned") return { status: "returned" };
-  return { status: "cancelled" };
+  if (request.status === "approved") {
+    return { status: "approved", ...details };
+  }
+  if (request.status === "returned") {
+    return { status: "returned", ...details };
+  }
+  return { status: "cancelled", ...details };
 }

@@ -945,3 +945,191 @@ a {
     font-size: 19px;
   }
 }
+
+/* Borrowing — passcode step (visual-system.md §13.1) */
+
+.passcode-heading {
+  margin: 0 0 8px;
+  font-family: var(--font-caslon), serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.passcode-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: #fdfbf7;
+  color: var(--foreground);
+  font-size: 22px;
+  letter-spacing: 0.4em;
+  text-align: center;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.passcode-input:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Receipt slip (visual-system.md §13.2) — the one visual nod to the
+   teller machine. Torn top/bottom edges are a CSS mask: two rows of
+   triangles, no images. */
+
+.receipt {
+  --tooth: 8px;
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  background: #fdfbf7;
+  box-shadow: 0 10px 24px -14px rgb(43 41 37 / 35%);
+  -webkit-mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg)
+      bottom / calc(var(--tooth) * 2) 51% repeat-x,
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg)
+      top / calc(var(--tooth) * 2) 51% repeat-x;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg)
+      bottom / calc(var(--tooth) * 2) 51% repeat-x,
+    conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg)
+      top / calc(var(--tooth) * 2) 51% repeat-x;
+}
+
+.receipt-head {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.receipt-library {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.receipt-heading {
+  margin: 0;
+  font-family: var(--font-caslon), serif;
+  font-size: 26px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.receipt-tear {
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-top: 1px dashed var(--rule);
+}
+
+.receipt-lines {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.receipt-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.receipt-line dt {
+  padding-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.receipt-line dd {
+  min-width: 0;
+  margin: 0;
+  text-align: right;
+}
+
+.receipt-book {
+  font-family: var(--font-caslon), serif;
+  font-size: 15px;
+}
+
+.receipt-status-inactive {
+  color: var(--muted);
+}
+
+.receipt-link-box {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px dashed var(--foreground);
+  border-radius: 3px;
+}
+
+.receipt-link-label {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.receipt-link {
+  margin: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.receipt-warning {
+  margin: 0;
+  color: var(--terracotta);
+  font-size: 12px;
+}
+
+.receipt-note {
+  margin: 0;
+  font-size: 14px;
+  text-align: center;
+}
+
+.receipt-small-button {
+  justify-self: start;
+  min-height: 32px;
+  padding: 4px 14px;
+  font-size: 13px;
+}
+
+.receipt-cancel-wrap {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.receipt-cancel {
+  justify-self: center;
+  min-height: 36px;
+  font-size: 13px;
+}
+
+.receipt-foot {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+}

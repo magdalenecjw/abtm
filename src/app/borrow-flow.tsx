@@ -6,7 +6,7 @@ import {
   submitBorrowRequest,
   cancelRequestByToken,
 } from "./borrow-actions";
-import { formatQueuePosition } from "@/lib/borrowing/queue-position";
+import { ReceiptSlip } from "./receipt-slip";
 
 export type BorrowStep = "passcode" | "form" | "confirmation";
 
@@ -14,14 +14,18 @@ type ConfirmationData = {
   requestId: string;
   queuePosition: number;
   managementToken: string;
+  requestedAt: string;
 };
 
 export function BorrowFlow({
   bookUuid,
+  bookTitle,
   onStepChange,
   onClose,
 }: {
   bookUuid: string;
+  /** Shown on the receipt (visual-system.md §13.2). */
+  bookTitle: string;
   onStepChange: (step: BorrowStep) => void;
   onClose: () => void;
 }) {
@@ -120,6 +124,7 @@ export function BorrowFlow({
         requestId: result.requestId,
         queuePosition: result.queuePosition,
         managementToken: result.managementToken,
+        requestedAt: result.requestedAt,
       });
       setStep("confirmation");
     });
@@ -153,8 +158,14 @@ export function BorrowFlow({
 
   if (step === "passcode") {
     return (
+      // Wording per visual-system.md §13.1 — behaviour unchanged.
       <form onSubmit={handlePasscodeSubmit}>
-        <h2 className="book-title text-xl mb-4">Enter the borrow passcode</h2>
+        <h2 className="passcode-heading">
+          Please enter your <em>passcode</em>
+        </h2>
+        <p className="text-sm text-[var(--muted)] mb-4">
+          Friends of the library get the passcode from the owner.
+        </p>
         <label htmlFor="passcode" className="sr-only">
           Passcode
         </label>
@@ -164,7 +175,8 @@ export function BorrowFlow({
           value={passcode}
           onChange={(e) => setPasscode(e.target.value)}
           disabled={isPending}
-          className="search-input"
+          autoComplete="off"
+          className="passcode-input"
         />
         {passcodeError && (
           <p className="text-sm mt-2 text-[var(--terracotta)]" role="alert">
@@ -173,7 +185,7 @@ export function BorrowFlow({
         )}
         <div className="mt-5 flex gap-2">
           <button type="submit" disabled={isPending} className="primary-button">
-            {isPending ? "Checking…" : "Submit"}
+            {isPending ? "Checking…" : "Continue"}
           </button>
           <button type="button" onClick={onClose} className="secondary-button">
             Cancel
@@ -227,12 +239,8 @@ export function BorrowFlow({
         )}
 
         <div className="mt-5 flex gap-2">
-          <button
-            type="submit"
-            disabled={isPending}
-            className="primary-button"
-          >
-            {isPending ? "Submitting…" : "Submit request"}
+          <button type="submit" disabled={isPending} className="primary-button">
+            {isPending ? "Submitting…" : "Complete withdrawal"}
           </button>
           <button type="button" onClick={onClose} className="secondary-button">
             Cancel
@@ -249,35 +257,41 @@ export function BorrowFlow({
       ? `${window.location.origin}/request/manage/${confirmation.managementToken}`
       : "";
 
+  // The receipt (visual-system.md §13.2). The link box is the only
+  // place the management link is ever shown, so its warning is the
+  // persistent banner required by workflows.md §3.5.
   return (
-    <div>
-      <h2 className="book-title text-xl mb-4">Request submitted</h2>
-
-      {!cancelled && (
-        <div
-          role="alert"
-          className="border border-[var(--terracotta)] rounded-[3px] p-3 mb-4 text-sm"
-        >
-          Save this link now — it will not be shown again. If you lose it,
-          contact the library owner directly to request a new one.
-        </div>
-      )}
-
+    <ReceiptSlip
+      heading="Please take your receipt"
+      bookTitle={bookTitle}
+      requestedAt={confirmation.requestedAt}
+      status={cancelled ? "inactive" : "pending"}
+      queuePosition={confirmation.queuePosition}
+    >
       {cancelled ? (
-        <p className="text-sm">{cancelMessage}</p>
+        <p className="receipt-note">{cancelMessage}</p>
       ) : (
         <>
-          <p className="mb-3 break-all text-sm">{link}</p>
-          <button type="button" onClick={handleCopyLink} className="secondary-button">
-            {copied ? "Copied!" : "Copy link"}
-          </button>
-
-          <p className="mt-4 text-sm">
-            {formatQueuePosition(confirmation.queuePosition)}
-          </p>
+          <hr className="receipt-tear" />
+          <div className="receipt-link-box">
+            <p className="receipt-link-label">Your receipt link</p>
+            <p className="receipt-link">{link}</p>
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="secondary-button receipt-small-button"
+            >
+              {copied ? "Copied!" : "Copy link"}
+            </button>
+            <p className="receipt-warning" role="alert">
+              Save this link now. It won&apos;t be shown again, and it&apos;s
+              the only way to check or cancel your request. If you lose it, ask
+              the library owner for a new one.
+            </p>
+          </div>
 
           {cancelMessage && (
-            <p className="text-sm mt-2 text-[var(--terracotta)]" role="alert">
+            <p className="receipt-note text-[var(--terracotta)]" role="alert">
               {cancelMessage}
             </p>
           )}
@@ -286,12 +300,12 @@ export function BorrowFlow({
             type="button"
             onClick={handleCancel}
             disabled={isPending}
-            className="destructive-button mt-4"
+            className="destructive-button receipt-cancel"
           >
-            Cancel request
+            {isPending ? "Cancelling…" : "Cancel request"}
           </button>
         </>
       )}
-    </div>
+    </ReceiptSlip>
   );
 }
