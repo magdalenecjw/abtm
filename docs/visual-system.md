@@ -1,7 +1,7 @@
 # Automated Book Teller Machine — Visual System
 
 **Document status:** Complete — typography, color palette, spacing, borders/corners, buttons, modal treatment, book spines, mobile behaviour, catalogue hero, genre chips, and hover card all defined.
-**Date:** 12 September 2026 · **Revised:** 11 October 2026 (catalogue redesign)
+**Date:** 12 September 2026 · **Revised:** 11 October 2026 (catalogue redesign; teller touches)
 
 This document defines the concrete visual language implementing the design direction set out in §31 of `Technical_Specifications.md` (classical, refined, quiet, clean, contemporary, typography-led, generous whitespace, thin rules, restrained borders — explicitly avoiding parchment, sepia, distressed textures, Victorian ornament, and generic SaaS aesthetics).
 
@@ -17,6 +17,12 @@ This document defines the concrete visual language implementing the design direc
 - **§9** (new) — catalogue header, hero and search line.
 - **§10** (new) — genre chips (All + top five + More).
 - **§11** (new) — spine hover card (desktop pointer and keyboard focus only).
+
+**11 October 2026 — teller touches.** The site's name is a play on a bank's teller machine; this pass lets that show in the *words* and one contained visual, while the look stays a classic library. Rule of thumb: **wit in the copy, restraint in the visuals** — instructions and error messages always stay plain. Agreed via a clickable mockup.
+
+- **§12** (new) — My Reads becomes **"Transaction history"**: matching hero, reads as catalogue cards, rating dots, source pills, drawn covers for books without one.
+- **§13** (new) — borrowing-flow wording ("Please enter your passcode", "Continue", "Complete withdrawal") and the **receipt slip** used for the confirmation and the request page.
+- Considered and not adopted: "Available balance: 97 volumes" in the catalogue hero — the count stays "97 volumes".
 
 ---
 
@@ -296,3 +302,99 @@ A small card that previews a book when you point at its spine — an extra on de
 - **Position:** centred above the spine with a 16px gap; flips below the spine if there's no room above; kept at least 12px inside the window edges.
 - **Behaviour:** purely visual (it can't be clicked, and doesn't take pointer events); fades and rises 4px in over 120ms.
 - **Reconciling with the "no hover" rule** in `ui-specification.md` §1.1: that rule stops hover being the *only* way to reach something. The hover card only previews what the details modal already shows, so touch users lose nothing.
+
+---
+
+## 12. My Reads — "Transaction history"
+
+The public My Reads page (ui-specification.md §1.2). Same structure as the catalogue so the two pages read as a pair. The nav link stays "My Reads".
+
+### 12.1 Hero
+
+As §9.2, with:
+1. **Library name** label — "(automated) book teller machine".
+2. **Headline** — "Transaction history", Display size, italic Libre Caslon Text. No typing effect (that stays unique to the catalogue).
+3. **Count** — "42 books read", Inter label style. Counts entries in the feed, so a re-read counts again. Singular: "1 book read".
+
+### 12.2 Read cards
+
+A single column, max 760px wide, centred. Cards are separated by hairline rules (above the first and below the last too), 32px vertical padding.
+
+Each card: cover on the left (96px wide, 2:3), content on the right, 24px gap. Content, top to bottom:
+
+1. **Title** (Libre Caslon Text, 22px) with the **rating** aligned to the right on the same line (wrapping below on narrow screens).
+2. **Author** — Inter label style (12px, uppercase, `0.14em`), shown as typed.
+3. **Labels row** — the source pill first, then one outline pill per genre (split on ";", technical-specifications.md §14.3). Genre pills are labels only, not links or filters.
+4. **Notes** — Inter 15px, line-height 1.7, set off by a 1px rule on the left with 16px padding, like a margin note. Clamped to **4 lines**; if (and only if) the note is cut off, a "Read more" link appears below and expands it in place ("Show less" to collapse). Must work without JavaScript.
+5. **"See availability →"** — Inter 12px, sage — only on "On my shelf" entries.
+
+**Rating** — five 9px circles, 4px apart, outlined in the primary text colour: filled for each whole point, half-filled (left half) for a half point. Accessible label "Rated 4.5 out of 5". No rating → nothing shown.
+
+**Source pills** (11px Inter, pill shape):
+
+| Source | Pill | Style |
+|---|---|---|
+| `Owned` | "On my shelf" | Pale sage tint fill (`#E9ECE4`), dark sage text, medium weight |
+| `NLB` | "NLB" | Hairline outline, muted text |
+| none | — | No pill |
+
+**Linking** — an "On my shelf" card is one link (the whole card) to that book's details modal in the catalogue (ui-specification.md §1.2). Hover: a very faint sage wash and the title underlines. Other cards aren't links.
+
+### 12.3 Covers
+
+- The real cover where one exists, 3px corners, hairline border.
+- **No cover → a drawn cover** in the spine style (§7.2): fill from the spine palette (§2.5) chosen from a hash of the read's id, the same gradient shading, thin double rules near top and bottom, the title in Libre Caslon Text (12px) near the top and the family name (§7.2's rule) in the 7px label style at the foot. It must not imitate the real cover — same rule as spines (Technical_Specifications.md §14).
+
+### 12.4 Mobile
+
+Cover shrinks to 72px with a 16px gap; title 19px; 24px card padding. Everything else as desktop.
+
+---
+
+## 13. Borrowing flow wording and the receipt
+
+### 13.1 Wording
+
+Layout, rules and behaviour are unchanged (§6, workflows.md §3) — only these strings change:
+
+| Where | Before | After |
+|---|---|---|
+| Passcode step heading | "Enter the borrow passcode" | "Please enter your *passcode*" (the word *passcode* in italic) |
+| Passcode step, under the heading (new) | — | "Friends of the library get the passcode from the owner." — Inter 14px, muted |
+| Passcode step, primary button | "Submit" | "Continue" |
+| Request form, primary button | "Submit request" | "Complete withdrawal" |
+| Confirmation heading | "Request submitted" | "Please take your receipt" |
+
+Error messages, field labels and validation text stay exactly as they are.
+
+The passcode field becomes a larger, centred input: 48px tall, 22px text with `0.4em` letter-spacing, on the paper colour (`#FDFBF7`), 3px corners.
+
+### 13.2 The receipt slip
+
+The one visual nod to the teller machine. Used for **both** the confirmation (inside the details modal, right after a request is submitted) and the request page reached from the saved link (`/request/manage/{token}`).
+
+- **Shape** — a narrow slip, max 380px wide, centred; paper colour `#FDFBF7`; 32px × 24px padding; a soft drop shadow; **zig-zag torn edges** top and bottom (8px teeth, drawn with a CSS mask — no images).
+- **Head** (centred) — the library name in the label style (10px, `0.24em`), then the heading in italic Libre Caslon Text, 26px:
+  - confirmation: "Please take your receipt"
+  - request page: "Your request"
+- **Dashed rules** (1px, rule colour) separate the head, the line items and the link box.
+- **Line items** — label left (Inter 10px uppercase, `0.18em`, muted), value right (Inter 13px, tabular figures):
+
+  | Label | Value |
+  |---|---|
+  | Transaction | "Borrow request" |
+  | Book | Title, in Libre Caslon Text 15px |
+  | Requested | Date and time of the request, e.g. "11 Oct 2026, 23:04" |
+  | Status | Status pill (as §6): **Pending** in the checked-out amber, **Approved** in the available green, **No longer active** muted |
+  | Queue | Pending only — the existing wording ("You are 2nd in line" / "0 ahead — you're next") |
+
+  No names of any kind appear on the slip (Technical_Specifications.md §11).
+- **Receipt link box** (confirmation only) — 1px *dashed* border in the primary text colour, 3px corners, 12px padding:
+  - label "Your receipt link" (10px uppercase, medium);
+  - the full link (12px, wraps anywhere);
+  - "Copy link" as a small secondary pill ("Copied!" after copying);
+  - the warning in terracotta: "Save this link now. It won't be shown again, and it's the only way to check or cancel your request. If you lose it, ask the library owner for a new one." This is the persistent banner required by workflows.md §3.5 — same meaning, new place.
+- **Cancel request** — destructive pill, centred, smaller (36px tall); only while pending.
+- **Request page, other states** — Approved: line items plus "Approved." below; Returned/Cancelled: line items with the "No longer active" pill and "This request is no longer active." below. Invalid link: no slip — just the existing plain message.
+- **Foot** — "Thank you for borrowing", centred, 11px label style, muted.
+

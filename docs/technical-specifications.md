@@ -1,7 +1,7 @@
 # Automated Book Teller Machine — Formal Technical Specification
 
 **Document status:** Development-ready specification  
-**Version:** 1.4  
+**Version:** 1.5  
 **Date:** 12 September 2026 · **Revised:** 11 October 2026
 
 ## Changelog
@@ -34,6 +34,12 @@
 - **§14 / §16** — the `genre` field may hold several genres separated by semicolons (e.g. `Fiction; Historical Fiction`). Genre chips filter on whole genres; free-text search is unchanged (substring match on title, author or genre).
 - **§24** — catalogue accepts an optional `genre` parameter alongside `q`.
 - **§35** — catalogue acceptance criteria extended to cover the above.
+- No database or migration changes.
+
+**v1.4 → v1.5** — "teller touches" (visual detail in `docs/visual-system.md` §12–13; screen content in `docs/ui-specification.md` §1.2, §1.4):
+- **§19** — the public My Reads page is presented as "Transaction history": read cards with rating dots, "On my shelf" / "NLB" pills, genre label pills, and drawn covers where none exists. No data changes; `date_read` still never shown.
+- **§10–11** — borrowing-flow wording changes ("Please enter your passcode", "Continue", "Complete withdrawal"), and the confirmation and request page are shown as a receipt slip. The slip adds two items for the borrower's own request: the **book title** and the **date/time requested** (`requested_at`). Behaviour, validation and error messages are unchanged.
+- **§35** — acceptance criteria added for both.
 - No database or migration changes.
 
 Full step-by-step reasoning for all workflow decisions lives in `docs/workflows.md`, which this document points to rather than duplicates.
@@ -352,6 +358,8 @@ The page always re-fetches current state on load and after any action — it nev
 | RETURNED | "This request is no longer active" | None |
 | CANCELLED | "This request is no longer active" | None |
 
+In every state above, the page is presented as a **receipt slip** (`docs/visual-system.md` §13.2) that also lists the requested **book title** and the **date/time the request was made** — both describe the borrower's own request and are safe to show. The confirmation screen (§10 step 8) uses the same slip, headed "Please take your receipt", with the link, Copy link action and the persistent save-it warning inside it. An invalid link shows the plain message only, with no slip.
+
 It must not expose:
 - Other borrowers' real names
 - Internal database details
@@ -614,6 +622,8 @@ The `source` field uses the `public.read_source` enum:
 * `NULL` — another or unknown source, such as a book borrowed from a friend
 
 There is no separate `source_detail` field.
+
+**Public presentation** ("Transaction history" — `docs/ui-specification.md` §1.2, `docs/visual-system.md` §12): newest first by `date_read` (never displayed); each read shows cover (or a drawn placeholder), title, author, genre pills, rating as five dots (half-points supported), notes clamped with "Read more", and a source pill — `Owned` → "On my shelf" linking to the catalogue modal, `NLB` → "NLB", `NULL` → none.
 
 ## 20. Admin Dashboard
 
@@ -920,6 +930,17 @@ Inactive books cannot receive new borrowing requests.
 - [ ] Ambiguous matches require confirmation.
 - [ ] Unmatched books remain valid reading records.
 - [ ] Re-importing the same Goodreads data does not blindly create duplicates.
+- [ ] Public My Reads shows the "Transaction history" hero and a count of reads.
+- [ ] Ratings show as five dots, including half-points, with an accessible "Rated n out of 5" label.
+- [ ] Reads without a cover show a drawn cover in the spine style; reads with one show the real cover.
+- [ ] "On my shelf" entries link to the book's catalogue modal; NLB and other entries don't link.
+- [ ] Long notes are clamped with "Read more", which works without JavaScript.
+
+### Borrowing presentation
+- [ ] Passcode step reads "Please enter your passcode" with Continue / Cancel; error messages unchanged.
+- [ ] Request form's submit button reads "Complete withdrawal".
+- [ ] Confirmation appears as a receipt slip with book title, request date/time, status, queue position, receipt link, Copy link, save-it warning and Cancel request.
+- [ ] The saved-link page uses the same slip for every status, and shows no names or collection/return dates.
 
 ### Security
 - [ ] Admin pages require authentication.

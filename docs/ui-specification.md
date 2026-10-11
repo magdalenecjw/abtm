@@ -1,7 +1,7 @@
 # Automated Book Teller Machine — UI Specification (Screens & Information Architecture)
 
 **Document status:** Supplements `Technical_Specifications.md` v1.2 and `docs/workflows.md`
-**Date:** 12 September 2026 · **Revised:** 11 October 2026 (catalogue redesign — §1.1 header and hover rule, new §1.3 Catalogue content)
+**Date:** 12 September 2026 · **Revised:** 11 October 2026 (catalogue redesign — §1.1 header and hover rule, new §1.3 Catalogue content; teller touches — §1.2 My Reads as "Transaction history", new §1.4 borrowing screens)
 
 This document defines the complete screen inventory, navigation structure, and screen-level content for both the public and admin experiences. Detailed step-by-step *behaviour* for each workflow (form validation, state transitions, server logic) lives in `docs/workflows.md` — this document focuses on *what exists* and *how it's organised*, not the mechanics of each action.
 
@@ -29,12 +29,15 @@ There are **no individual book pages** (per §14 of the technical spec) — book
 
 ### 1.2 My Reads (public feed) — content
 
-- **Layout:** reverse-chronological feed, no search/filter (browsing/discovery, not lookup).
-- **Per entry, shown:** cover, title, author, genre, rating, notes (all treated as public-appropriate content — no private/public distinction on notes).
-- **`date_read`:** not shown.
+Presented as **"Transaction history"** (visual treatment: `visual-system.md` §12). The nav link stays "My Reads".
+
+- **Hero:** library name label, the headline "Transaction history", and a count ("42 books read" — one per entry, so re-reads count again).
+- **Layout:** reverse-chronological feed of read cards, no search/filter (browsing/discovery, not lookup).
+- **Per entry, shown:** cover (or a drawn cover in the spine style when there isn't one), title, author, genres (as label pills — not filters), rating (five dots), notes (clamped to 4 lines with "Read more"). All treated as public-appropriate content — no private/public distinction on notes.
+- **`date_read`:** not shown (used only for ordering). No year headings, for the same reason.
 - **`source` label:**
-  - `Owned` → entry links through to the same book details modal used on the catalogue (via catalogue navigation, not a distinct URL), so a friend can see live availability/borrow status.
-  - `NLB` → shown as an informational label only (e.g. "Available via NLB") — no live link or integration with the actual NLB system.
+  - `Owned` → an "On my shelf" pill, and the whole entry links through to the same book details modal used on the catalogue (via catalogue navigation, not a distinct URL), so a friend can see live availability/borrow status. Shows "See availability →".
+  - `NLB` → an "NLB" pill, informational only — no live link or integration with the actual NLB system.
   - Blank/other → no label shown.
 
 ### 1.3 Catalogue (home) — content
@@ -50,6 +53,18 @@ Top to bottom (visual treatment in `visual-system.md` §7, §9–11):
 5. **Empty result** — if nothing matches, the shelves are replaced with "Nothing on the shelf matches that."
 
 Search text and the selected genre live in the page address (`?q=…&genre=…`), so a filtered view can be refreshed, shared, or reached with the back button, and works without JavaScript.
+
+
+### 1.4 Borrowing screens — content
+
+Behaviour is unchanged (`docs/workflows.md` §3–4); this pass changes wording and the confirmation/status presentation (`visual-system.md` §13).
+
+- **Passcode (screen 3):** heading "Please enter your passcode", a one-line hint ("Friends of the library get the passcode from the owner."), buttons **Continue** and **Cancel**. Error messages unchanged.
+- **Request form (screen 4):** fields and rules unchanged; primary button **Complete withdrawal**.
+- **Confirmation and request status (screen 5):** shown as a **receipt slip**, with line items — transaction ("Borrow request"), book title, date and time requested, status, and queue position while pending.
+  - Confirmation: heading "Please take your receipt", plus the receipt link box (link, Copy link, the save-it-now warning) and Cancel request.
+  - Saved-link page: heading "Your request", the same line items, and Cancel request while pending.
+  - Never shows any borrower's real name or nickname, or collection/return dates (Technical_Specifications.md §11).
 
 ---
 
