@@ -276,11 +276,6 @@ a {
   font-style: italic;
 }
 
-.spine-title-caps {
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .spine-author {
   max-height: 64px;
   margin-top: 8px;

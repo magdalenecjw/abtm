@@ -12,7 +12,7 @@ This document defines the concrete visual language implementing the design direc
 - **§1** — added a Display size (italic Libre Caslon Text, hero headline only) and a spaced-capitals Label style.
 - **§2.5** (new) — spine palette widened from two alternating neutrals to thirteen neutral shades.
 - **§4 / §5** — buttons, chips, status badges and the help icon become pills; modal, hover card, cards and inputs keep 3px corners.
-- **§7** — spines reversed from horizontal to **vertical** titles; width now varies as well as height; typographic and bindery-detail variety added; layout becomes **stacked shelves** (wrapping rows resting on shelf ledges).
+- **§7** — spines reversed from horizontal to **vertical** titles; width now varies as well as height; typographic and bindery-detail variety added; layout becomes **stacked shelves** (wrapping rows resting on shelf ledges). Follow-up the same day: the all-capitals title style was removed so spine titles always match the catalogue.
 - **§8** — mobile notes updated for the above.
 - **§9** (new) — catalogue header, hero and search line.
 - **§10** (new) — genre chips (All + top five + More).
@@ -34,7 +34,7 @@ This document defines the concrete visual language implementing the design direc
 ### 1.2 Usage rules
 
 - **Libre Caslon Text** is used for: top-level page headings, the catalogue hero headline, and **book titles everywhere** — including book spines, the spine hover card, the book details modal, and My Reads entries. One consistent weight throughout (its regular cut) — no bold Caslon anywhere, keeping headings quiet rather than shouty.
-  - **Italic Caslon** is used sparingly: the catalogue hero headline (§9.2), the search line placeholder (§9.3), and as one of the three spine title treatments (§7.2).
+  - **Italic Caslon** is used sparingly: the catalogue hero headline (§9.2), the search line placeholder (§9.3), and as one of the two spine title treatments (§7.2).
 - **Inter** is used for everything else: body text, descriptions, notes/review text, form fields, buttons, nav links, table cells, status labels, timestamps. Regular weight for body/UI text; a medium weight (not full bold) is available for elements needing slight emphasis (button labels, active nav state), keeping emphasis restrained rather than high-contrast.
   - **Label style** — Inter in uppercase with wide letter-spacing, used for short identifying labels: the library name and volume count in the hero (§9.2), genre chips (§10), authors on the hover card (§11), and the author surname at the foot of each spine (§7.2).
 
@@ -193,12 +193,13 @@ Spines are quick visual identifiers — full detail lives in the hover card and 
   *History:* originally horizontal, chosen for readability. Reversed in October 2026 — the hover card (§11) now carries readable detail on desktop, so the spine can prioritise looking like a real shelf.
 - **Dimensions:** both vary per book — height 190–259px, width 30–53px. Each is derived from a hash of the book's `id`, so every book always gets the same size, and nothing jumps between page loads.
 - **Fill:** one of the thirteen spine palette shades (§2.5), also chosen from the hash. A soft horizontal gradient (darker at both edges, a faint highlight just left of centre) and a 1px light inset at the top give each spine a slightly rounded, bound look — shading only, never texture or imagery.
-- **Title treatment:** one of three, chosen from the hash, all in Libre Caslon Text:
+- **Title treatment:** one of two, chosen from the hash, both in Libre Caslon Text:
   1. Regular
   2. Italic
-  3. Uppercase with `0.12em` letter-spacing (2px smaller to compensate)
 
-  Size: 15px on spines wider than 44px, 13px on spines wider than 36px, 12px otherwise.
+  Titles always appear **exactly as written in the catalogue** — no change of case. *(An all-capitals third treatment was tried and removed in October 2026: it made a third of titles look different from the catalogue.)*
+
+  Size: 15px on spines wider than 44px, 13px on spines wider than 36px, 12px otherwise; titles longer than 22 characters (after colon truncation) drop 1px; never below 11px.
 - **Bindery details** (generic, drawn in the spine's own text colour at low opacity), one of, chosen from the hash:
   - none
   - a pair of thin double rules near the top and bottom

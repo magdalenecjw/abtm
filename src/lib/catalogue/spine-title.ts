@@ -72,7 +72,7 @@ export function getSpineInk(fillHex: string): string {
   return luminance < 0.55 ? SPINE_INK_LIGHT : SPINE_INK_DARK;
 }
 
-export type SpineTitleTreatment = "regular" | "italic" | "caps";
+export type SpineTitleTreatment = "regular" | "italic";
 export type SpineDecoration = "none" | "rules" | "band";
 
 export type SpineStyle = {
@@ -95,7 +95,9 @@ const HEIGHT_RANGE = 70; // → 190–259
 const WIDTH_MIN = 30;
 const WIDTH_RANGE = 24; // → 30–53
 const MIN_TITLE_SIZE = 11;
-const TREATMENTS: SpineTitleTreatment[] = ["regular", "italic", "caps"];
+// Titles always show exactly as written in the catalogue — no case
+// changes (the earlier all-capitals style was removed, October 2026).
+const TREATMENTS: SpineTitleTreatment[] = ["regular", "italic"];
 // "rules" appears twice on purpose: thin double rules are the most
 // book-like detail, so roughly half the spines get them.
 const DECORATIONS: SpineDecoration[] = ["none", "rules", "band", "rules"];
@@ -111,19 +113,18 @@ export function getSpineStyle(bookId: string, title: string): SpineStyle {
   const h = hashString(bookId);
   const hWidth = hashString(bookId, "w");
   const hFill = hashString(bookId, "s");
+  const hTreatment = hashString(bookId, "t");
 
   const height = HEIGHT_MIN + (h % HEIGHT_RANGE);
   const width = WIDTH_MIN + (hWidth % WIDTH_RANGE);
   const fill = SPINE_PALETTE[hFill % SPINE_PALETTE.length];
-  const titleTreatment = TREATMENTS[h % TREATMENTS.length];
+  const titleTreatment = TREATMENTS[hTreatment % TREATMENTS.length];
   const decoration = DECORATIONS[hWidth % DECORATIONS.length];
 
-  // 15px on wide spines, 13px on medium, 12px on narrow; caps are 2px
-  // smaller to offset their letter-spacing; long titles drop 1px more.
-  // Never below 11px (visual-system.md §1.3) — narrow + caps + long
-  // would otherwise reach an unreadable 9px.
+  // 15px on wide spines, 13px on medium, 12px on narrow; titles over
+  // 22 characters drop 1px so more of them fit. Never below 11px
+  // (visual-system.md §1.3).
   let titleSize = width > 44 ? 15 : width > 36 ? 13 : 12;
-  if (titleTreatment === "caps") titleSize -= 2;
   if (getSpineTitle(title).length > 22) titleSize -= 1;
   titleSize = Math.max(MIN_TITLE_SIZE, titleSize);
 
