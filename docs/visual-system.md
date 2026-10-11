@@ -12,7 +12,7 @@ This document defines the concrete visual language implementing the design direc
 - **§1** — added a Display size (italic Libre Caslon Text, hero headline only) and a spaced-capitals Label style.
 - **§2.5** (new) — spine palette widened from two alternating neutrals to thirteen neutral shades.
 - **§4 / §5** — buttons, chips, status badges and the help icon become pills; modal, hover card, cards and inputs keep 3px corners.
-- **§7** — spines reversed from horizontal to **vertical** titles; width now varies as well as height; typographic and bindery-detail variety added; layout becomes **stacked shelves** (wrapping rows resting on shelf ledges). Follow-up the same day: the all-capitals title style was removed so spine titles always match the catalogue.
+- **§7** — spines reversed from horizontal to **vertical** titles; width now varies as well as height; typographic and bindery-detail variety added; layout becomes **stacked shelves** (wrapping rows resting on shelf ledges). Follow-ups the same day: the all-capitals title style was removed so spine titles always match the catalogue; the spine's author name now honours a capitalised family name ("Haruki MURAKAMI").
 - **§8** — mobile notes updated for the above.
 - **§9** (new) — catalogue header, hero and search line.
 - **§10** (new) — genre chips (All + top five + More).
@@ -206,7 +206,9 @@ Spines are quick visual identifiers — full detail lives in the hover card and 
   - a single translucent horizontal band about a fifth of the way down
 
   These are what make the shelf feel varied without reproducing any real cover (§14). Spines never show cover art, publisher logos or colours taken from the real book.
-- **Author:** the author's surname at the foot of the spine, Inter label style (§1.2), 8px, 70% opacity — echoing where a publisher's mark or author name sits on a real spine.
+- **Author:** the author's family name at the foot of the spine, Inter label style (§1.2), 8px, 70% opacity — echoing where a publisher's mark or author name sits on a real spine.
+  - **Which part is the family name:** if the author field marks it in capitals (e.g. "Haruki MURAKAMI", "MO Yan", "R.F. KUANG"), that part is used, wherever it sits in the name. Otherwise the last word is used, with particles like "du" or "Le" kept ("Daphne du Maurier" → "du Maurier"). The capitals convention is what makes family-name-first and many Asian names show correctly; see Technical_Specifications.md §16.
+  - Only the spine uses this. The hover card, details modal and My Reads show the author exactly as typed.
 - **Interaction:** on hover or keyboard focus the spine lifts 8px (`translateY(-8px)`, 180ms ease). Focus also shows the standard 2px sage focus ring. Click/tap opens the details modal (§6).
 
 ### 7.3 Shelf layout — stacked shelves

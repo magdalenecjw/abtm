@@ -522,6 +522,13 @@ The catalogue spreadsheet contains:
 
 `genre` may list several genres separated by semicolons (e.g. `Fiction; Historical Fiction`). It is stored as written; the catalogue splits it when filtering (§14.3). Put the broadest genre first by convention — it isn't required, but it keeps the spreadsheet readable.
 
+`author` is shown as written everywhere except the spine, which shows only the family name (`docs/visual-system.md` §7.2). To make that work for any name order, use this convention:
+
+- **Write the family name in capitals** when the name isn't in given-name-first order, or whenever you want to be sure: `Haruki MURAKAMI`, `MO Yan`, `R.F. KUANG`. The capitalised part is used wherever it sits in the name.
+- **Otherwise the last word is used**, so ordinary names like `Kazuo Ishiguro` need no capitals.
+- **Put full stops in initials** (`A.A. Milne`, not `AA Milne`), or the initials are read as a capitalised family name.
+- Capitals don't affect search or Goodreads matching, which both ignore case.
+
 Synchronisation:
 
 - New `book_id` → create `books` record

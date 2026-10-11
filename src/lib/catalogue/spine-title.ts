@@ -141,18 +141,57 @@ export function getSpineStyle(bookId: string, title: string): SpineStyle {
 
 /** Name particles that belong with the surname ("Le Guin", "du Maurier"). */
 const SURNAME_PARTICLES = new Set([
-  "da", "de", "del", "della", "der", "di", "du", "la", "le", "st", "st.",
-  "van", "von",
+  "da",
+  "de",
+  "del",
+  "della",
+  "der",
+  "di",
+  "du",
+  "la",
+  "le",
+  "st",
+  "st.",
+  "van",
+  "von",
 ]);
 const NAME_SUFFIXES = new Set(["jr", "jr.", "sr", "sr.", "ii", "iii", "iv"]);
 
 /**
- * The author's surname for the foot of the spine (visual-system.md §7.2).
+ * True for a word written entirely in capitals with at least two
+ * letters and no full stops — the convention for marking the family
+ * name ("Haruki MURAKAMI", "MO Yan"). Initials with full stops ("R.F.",
+ * "J.R.R.") never count; a trailing comma is ignored.
+ */
+function isCapitalisedName(word: string): boolean {
+  const core = word.replace(/,$/, "");
+  if (core.includes(".")) return false;
+  const letters = core.match(/\p{L}/gu) ?? [];
+  return letters.length >= 2 && letters.every((ch) => /\p{Lu}/u.test(ch));
+}
+
+/**
+ * The author's family name for the foot of the spine (visual-system.md
+ * §7.2, technical-specifications.md §16).
  *
- * Assumes "First Last" order. If several authors are listed (separated
- * by ";", "&" or " and "), uses the first. Keeps surname particles
- * ("Ursula K. Le Guin" → "Le Guin", "Daphne du Maurier" → "du Maurier")
- * and skips suffixes ("Martin Luther King Jr." → "King").
+ * If several authors are listed (separated by ";", "&" or " and "),
+ * uses the first. Suffixes are dropped first ("Martin Luther King Jr."
+ * → "King", "… III" never counts as a name).
+ *
+ * 1. **Capitalised family name wins.** If the name mixes capitalised and
+ *    ordinary words, the longest run of capitalised words is the family
+ *    name, wherever it sits — so family-name-first and Asian names work
+ *    when typed that way: "MO Yan" → "MO", "Haruki MURAKAMI" →
+ *    "MURAKAMI", "R.F. KUANG" → "KUANG", "Ursula K. LE GUIN" →
+ *    "LE GUIN". Particles just before it are kept ("Daphne du MAURIER"
+ *    → "du MAURIER").
+ * 2. **Otherwise, the last word** (with any particles before it):
+ *    "Kazuo Ishiguro" → "Ishiguro", "Daphne du Maurier" → "du Maurier".
+ *    This also covers names typed entirely in capitals, where there's
+ *    nothing to tell the family name apart.
+ *
+ * Initials need full stops ("A.A. Milne"); "AA Milne" would read "AA"
+ * as a capitalised family name.
  */
 export function getAuthorSurname(author: string): string {
   const firstAuthor = author.split(/;|&|\band\b/i)[0]?.trim() ?? "";
@@ -165,9 +204,39 @@ export function getAuthorSurname(author: string): string {
   }
   if (words.length === 0) return "";
 
-  let start = words.length - 1;
-  while (start > 0 && SURNAME_PARTICLES.has(words[start - 1].toLowerCase())) {
-    start--;
+  // Rule 1: longest run of capitalised words, if the name isn't all caps.
+  const flags = words.map(isCapitalisedName);
+  if (flags.some(Boolean) && !flags.every(Boolean)) {
+    let bestStart = -1;
+    let bestLength = 0;
+    for (let i = 0; i < words.length;) {
+      if (!flags[i]) {
+        i++;
+        continue;
+      }
+      let j = i;
+      while (j < words.length && flags[j]) j++;
+      if (j - i > bestLength) {
+        bestStart = i;
+        bestLength = j - i;
+      }
+      i = j;
+    }
+    return withParticles(words, bestStart, bestStart + bestLength);
   }
-  return words.slice(start).join(" ").replace(/,$/, "");
+
+  // Rule 2: last word.
+  return withParticles(words, words.length - 1, words.length);
+}
+
+/** Joins words[start..end), extended left over any surname particles. */
+function withParticles(words: string[], start: number, end: number): string {
+  let from = start;
+  while (from > 0 && SURNAME_PARTICLES.has(words[from - 1].toLowerCase())) {
+    from--;
+  }
+  return words
+    .slice(from, end)
+    .map((w) => w.replace(/,$/, ""))
+    .join(" ");
 }
