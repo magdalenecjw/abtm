@@ -1,55 +1,39 @@
-import Link from "next/link";
 import { getPublicReads } from "@/lib/reads/public-reads";
+import { formatReadCount } from "@/lib/reads/presentation";
 import { SiteHeader } from "../site-header";
+import { ReadCard } from "./read-card";
 
+const LIBRARY_NAME = "(automated) book teller machine";
+
+// Public My Reads, presented as "Transaction history"
+// (ui-specification.md §1.2, visual-system.md §12): a newest-first feed
+// with no search or filters. date_read orders the feed but is never
+// shown (getPublicReads).
 export default async function ReadsPage() {
   const reads = await getPublicReads();
 
   return (
-    <main className="w-full max-w-4xl mx-auto px-6 py-12 md:px-8">
+    <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-12 md:px-8">
       <SiteHeader />
-      <h1 className="page-heading mb-6">My Reads</h1>
+
+      <section className="flex flex-col items-center gap-4 pt-6 pb-10 text-center">
+        <p className="hero-label">{LIBRARY_NAME}</p>
+        <h1 className="hero-headline">Transaction history</h1>
+        <p className="hero-label tabular-nums">
+          {formatReadCount(reads.length)}
+        </p>
+      </section>
 
       {reads.length === 0 ? (
-        <p>No reads yet.</p>
+        <p className="shelf-empty">No transactions yet.</p>
       ) : (
-        <ul className="flex flex-col gap-8 list-none p-0 max-w-2xl">
+        <ol className="reads-feed" aria-label="Books read, newest first">
           {reads.map((r) => (
-            <li key={r.id} className="flex gap-4 border-b border-[var(--rule)] pb-8">
-              {r.coverUrl && (
-                // eslint-disable-next-line @next/next/no-img-element -- external Supabase Storage URL / user-supplied cover URL, not a local/optimizable asset
-                <img
-                  src={r.coverUrl}
-                  alt={`Cover of ${r.title}`}
-                  className="w-16 h-24 object-cover rounded-[3px] border border-[var(--rule)] flex-shrink-0"
-                />
-              )}
-              <div>
-                {/* "Owned" links through to the same catalogue details
-                    modal via navigation, not a distinct URL, per
-                    ui-specification.md §1.2. */}
-                {r.source === "Owned" && r.bookId ? (
-                  <Link href={`/?openBook=${r.bookId}`} className="text-link">
-                    <span className="book-title text-lg">{r.title}</span>
-                  </Link>
-                ) : (
-                  <span className="book-title text-lg">{r.title}</span>
-                )}
-
-                <p className="text-sm mt-1">{r.author}</p>
-                {r.genre && <p className="text-sm">{r.genre}</p>}
-                {r.rating !== null && (
-                  <p className="text-sm">Rating: {r.rating}</p>
-                )}
-                {r.notes && <p className="text-sm mt-2">{r.notes}</p>}
-
-                {r.source === "NLB" && (
-                  <p className="text-sm italic mt-1">Available via NLB</p>
-                )}
-              </div>
+            <li key={r.id}>
+              <ReadCard read={r} />
             </li>
           ))}
-        </ul>
+        </ol>
       )}
     </main>
   );

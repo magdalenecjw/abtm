@@ -638,3 +638,310 @@ a {
   font-style: italic;
   text-align: center;
 }
+
+/* Transaction history — My Reads (visual-system.md §12) */
+
+.reads-feed {
+  display: grid;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.reads-feed > li {
+  border-top: 1px solid var(--rule);
+}
+
+.reads-feed > li:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+
+.read-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 24px;
+  /* Side padding pulled back with negative margin, so the hover wash
+     has breathing room while text stays aligned with the rules. */
+  margin: 0 -12px;
+  padding: 32px 12px;
+  border-radius: 3px;
+  transition: background-color 150ms ease;
+}
+
+/* Hover only on devices that really hover — on touch screens a tapped
+   card would otherwise stay highlighted. */
+@media (hover: hover) {
+  .read-card-linked:hover {
+    background: rgb(105 117 96 / 5%);
+  }
+
+  .read-card-linked:hover .read-link {
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 4px;
+  }
+}
+
+.read-cover {
+  width: 96px;
+  aspect-ratio: 2 / 3;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  object-fit: cover;
+}
+
+/* Drawn cover for reads without one (§12.3) — spine-style shading
+   and rules, never an imitation of the real cover. */
+.read-cover-drawn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px 8px 12px;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      90deg,
+      rgb(0 0 0 / 8%) 0,
+      rgb(255 255 255 / 8%) 12%,
+      rgb(255 255 255 / 0%) 40%,
+      rgb(0 0 0 / 6%) 100%
+    ),
+    var(--cover-fill, var(--spine-light));
+  color: var(--cover-ink, var(--foreground));
+  text-align: center;
+}
+
+.read-cover-drawn::before,
+.read-cover-drawn::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  left: 8px;
+  height: 4px;
+  border-top: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  opacity: 0.3;
+}
+
+.read-cover-drawn::before {
+  top: 6px;
+}
+
+.read-cover-drawn::after {
+  bottom: 6px;
+}
+
+.read-cover-title {
+  display: -webkit-box;
+  overflow: hidden;
+  font-family: var(--font-caslon), serif;
+  font-size: 12px;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.read-cover-author {
+  overflow: hidden;
+  font-size: 7px;
+  letter-spacing: 0.16em;
+  opacity: 0.7;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.read-body {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.read-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+.read-title {
+  margin: 0;
+  font-family: var(--font-caslon), serif;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+/* Stretched link: the title link covers the whole card. */
+.read-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.read-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+}
+
+.read-link:focus-visible {
+  outline: none;
+}
+
+.read-link:focus-visible::after {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.read-author {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.read-labels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.source-pill,
+.genre-pill {
+  padding: 1px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.source-owned {
+  background: #e9ece4;
+  color: #596352;
+  font-weight: 500;
+}
+
+.source-nlb {
+  border-color: var(--rule);
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.genre-pill {
+  border-color: var(--rule);
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Rating — five dots, half-points supported (§12.2) */
+.rating-dots {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.rating-dot {
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--foreground);
+  border-radius: 999px;
+}
+
+.rating-dot-full {
+  background: var(--foreground);
+}
+
+.rating-dot-half {
+  background: linear-gradient(90deg, var(--foreground) 50%, transparent 50%);
+}
+
+/* Notes: margin-note rule, clamped to four lines; "Read more" is a
+   native <details>, so expanding works without JavaScript. */
+.read-notes {
+  margin-top: 8px;
+  padding-left: 16px;
+  border-left: 1px solid var(--rule);
+}
+
+.read-notes-text {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.7;
+  white-space: pre-line;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.read-notes:has(details[open]) .read-notes-text {
+  display: block;
+  -webkit-line-clamp: unset;
+}
+
+/* Sits above the stretched card link so it stays clickable. */
+.read-more {
+  position: relative;
+  z-index: 1;
+  margin-top: 4px;
+}
+
+.read-more summary {
+  display: inline;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  list-style: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.read-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.read-more summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.read-more[open] .read-more-closed,
+.read-more:not([open]) .read-more-open {
+  display: none;
+}
+
+.read-availability {
+  margin: 0;
+  color: var(--accent);
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .read-card {
+    grid-template-columns: 72px 1fr;
+    gap: 16px;
+    margin: 0 -8px;
+    padding: 24px 8px;
+  }
+
+  .read-cover {
+    width: 72px;
+  }
+
+  .read-title {
+    font-size: 19px;
+  }
+}
