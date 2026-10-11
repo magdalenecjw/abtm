@@ -5,6 +5,7 @@
   --foreground: #2b2925;
 
   --rule: #d9d3c7;
+  --muted: #7d786f;
   --accent: #697560;
 
   --available: #3b5d45;
@@ -176,7 +177,7 @@ a {
 }
 
 .search-input::placeholder {
-  color: #7d786f;
+  color: var(--muted);
 }
 
 .search-input:focus {
@@ -275,4 +276,174 @@ a {
 
 .file-input::file-selector-button:hover {
   background: #596352;
+}
+/* Catalogue hero (visual-system.md §9.2) */
+
+.hero-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.hero-headline {
+  margin: 0;
+  font-family: var(--font-caslon), serif;
+  font-size: clamp(40px, 8.5vw, 92px);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+/* Typing effect: each character fades in at its own delay (--d, set
+   inline by CatalogueHero). Its ::after is the caret, visible only
+   during that character's step; the last character's caret then keeps
+   blinking. Pure CSS, so the full headline is in the HTML from the
+   start. */
+.hero-char {
+  position: relative;
+  animation: hero-type-in 1ms linear var(--d) both;
+}
+
+.hero-char::after {
+  content: "";
+  position: absolute;
+  top: 0.12em;
+  right: -0.06em;
+  bottom: 0.08em;
+  width: 1px;
+  background: currentColor;
+  opacity: 0;
+  animation: hero-caret-step 55ms steps(1) var(--d);
+}
+
+.hero-char-last::after {
+  right: -0.14em;
+  animation: hero-caret-blink 1s steps(1) var(--d) infinite;
+}
+
+@keyframes hero-type-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hero-caret-step {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hero-caret-blink {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+/* The global reduced-motion rule shortens durations but keeps delays,
+   which would still reveal letters one by one — so switch the effect
+   off entirely here. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-char {
+    animation: none;
+  }
+
+  .hero-char::after {
+    display: none;
+  }
+}
+
+/* Catalogue search line (visual-system.md §9.3) */
+
+.search-line {
+  width: 100%;
+  padding: 8px 0 12px;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 18px;
+  text-align: center;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.search-line::placeholder {
+  color: var(--muted);
+  font-family: var(--font-caslon), serif;
+  font-style: italic;
+}
+
+.search-line:focus {
+  border-bottom-color: var(--accent);
+}
+
+.search-line:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* Genre chips (visual-system.md §10) */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--foreground);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  line-height: 1.6;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.chip:hover {
+  border-color: var(--accent);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.chip[aria-current="true"] {
+  border-color: var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.chip-more {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+/* Catalogue empty states */
+
+.shelf-empty {
+  margin: 0;
+  padding: 40px 0;
+  color: var(--muted);
+  font-family: var(--font-caslon), serif;
+  font-style: italic;
+  text-align: center;
 }

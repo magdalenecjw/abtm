@@ -6,7 +6,7 @@ export default async function ReadsPage() {
   const reads = await getPublicReads();
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-12 md:px-8">
+    <main className="w-full max-w-4xl mx-auto px-6 py-12 md:px-8">
       <SiteHeader />
       <h1 className="page-heading mb-6">My Reads</h1>
 
