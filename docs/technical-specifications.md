@@ -1,8 +1,8 @@
 # Automated Book Teller Machine — Formal Technical Specification
 
 **Document status:** Development-ready specification  
-**Version:** 1.3  
-**Date:** 12 September 2026
+**Version:** 1.4  
+**Date:** 12 September 2026 · **Revised:** 11 October 2026
 
 ## Changelog
 
@@ -28,6 +28,13 @@
 - **§12** — the "email delivery failures" admin dashboard flag/box is removed. The dashboard's 8th stat box reverts to "Available" (previously removed as "not very important," reinstated to fill the slot).
 - **§3** (Technical Architecture) — "Transactional email provider" removed from the architecture table; no external email service is required for v1.
 - This may be revisited in the future if the project acquires a domain and the friend group's borrowing volume grows enough to justify it.
+
+**v1.3 → v1.4** — catalogue redesign (visual detail in `docs/visual-system.md` §7, §9–11; screen content in `docs/ui-specification.md` §1.3):
+- **§14** (Public Catalogue UI) — spines now show titles vertically on stacked shelves; added a hero with volume count, genre filter chips (All + five most common + More), and a desktop-only spine hover card. No change to the "generic spines, never covers" rule.
+- **§14 / §16** — the `genre` field may hold several genres separated by semicolons (e.g. `Fiction; Historical Fiction`). Genre chips filter on whole genres; free-text search is unchanged (substring match on title, author or genre).
+- **§24** — catalogue accepts an optional `genre` parameter alongside `q`.
+- **§35** — catalogue acceptance criteria extended to cover the above.
+- No database or migration changes.
 
 Full step-by-step reasoning for all workflow decisions lives in `docs/workflows.md`, which this document points to rather than duplicates.
 
@@ -424,23 +431,54 @@ loan_not_collected_threshold_days = 14  -- "Not yet collected"
 
 The public experience is one searchable catalogue rather than individual book pages.
 
-Books appear as generic book spines:
+Books appear as generic book spines, standing on stacked shelves, with titles running vertically:
 
 ```text
-║ Dune ║  ║ Piranesi ║  ║ The Night Circus ║
+ ┌─┐┌──┐ ┌─┐┌─┐
+ │D││P │┌┤T││ │
+ │u││i ││││h││…│
+ │n││r ││││e││ │
+ │e││a ││││ ││ │
+ ═══════════════   ← shelf ledge
 ```
 
 Spines:
-- display the title
+- display the title (main title only, before any colon)
 - are visually generic
-- may vary subtly in dimensions
+- vary in height, width, neutral fill, title style and simple bindery details (rules or a band), each derived deterministically from the book's `id` so a book always looks the same
 - must NOT reproduce the actual cover
 - must NOT look like miniature book covers
+
+Exact appearance: `docs/visual-system.md` §7.
+
+### 14.1 Hero and volume count
+
+The page opens with the library name, the headline "Please make a withdrawal", and a volume count: the number of active books ("97 volumes"), or "*n* of 97 volumes" while a search or genre filter is active.
+
+### 14.2 Search
 
 Search supports:
 - title
 - author
 - genre
+
+Free-text search is a case-insensitive substring match on any of the three (unchanged).
+
+### 14.3 Genre filter
+
+- The `genre` field may contain **one or more genres separated by semicolons**, e.g. `Fiction; Historical Fiction`. Each part is trimmed; empty parts are ignored. Spreadsheet sync stores the field exactly as written (§16) — splitting happens only when reading.
+- The catalogue shows filter chips: **All**, the **five most common genres** across active books (ranked by number of books, ties alphabetical), and **More (n)** to reveal the remaining genres.
+- Selecting a genre shows only books that list that genre. Matching is on **whole genres, case-insensitive** — so "Fiction" does **not** match a book whose only genre is "Historical Fiction" or "Science Fiction".
+- One genre at a time. Genre and search can be combined (both must match).
+- Filtering is done on the server (§33), driven by the page address (`/?q=…&genre=…`), so it works without JavaScript and a filtered view can be refreshed or shared.
+
+### 14.4 Spine hover card
+
+On devices that can hover with a fine pointer, and on keyboard focus, a spine shows a small card with the full title, author, genres and "Click for availability". It is a preview only — it contains nothing that isn't also in the details modal (§15), and it is never shown on touch devices, where a tap opens the modal directly.
+
+It deliberately shows **no availability status**: status is loaded per book when the modal opens, not for the whole shelf (§33).
+
+### 14.5 Covers
 
 The actual cover should be loaded/displayed when the user opens the book details modal rather than loading every full cover on the initial catalogue view.
 
@@ -481,6 +519,8 @@ The catalogue spreadsheet contains:
 | `genre` | Yes |
 | `notes` | No |
 | `active` | Yes |
+
+`genre` may list several genres separated by semicolons (e.g. `Fiction; Historical Fiction`). It is stored as written; the catalogue splits it when filtering (§14.3). Put the broadest genre first by convention — it isn't required, but it keeps the spreadsheet readable.
 
 Synchronisation:
 
@@ -641,7 +681,7 @@ Exact implementation may use Next.js Route Handlers or Server Actions.
 
 ```text
 GET  /catalogue
-GET  /catalogue/search
+GET  /catalogue/search           ?q={text}&genre={genre}   (both optional, combinable)
 GET  /book/{id-or-book-id}       [logical operation; no public book page required]
 POST /borrow/request
 GET  /borrow/manage/{token}
@@ -831,10 +871,17 @@ Inactive books cannot receive new borrowing requests.
 - [ ] Inactive books disappear publicly.
 - [ ] Historical data survives deactivation.
 - [ ] Search works for title, author, and genre.
-- [ ] Books appear as generic spines.
-- [ ] Spines display titles.
+- [ ] Books appear as generic spines on stacked shelves.
+- [ ] Spines display titles vertically, truncated at any colon.
+- [ ] A book's spine looks the same on every visit (size, colour and style are stable).
 - [ ] Clicking a spine opens the details modal.
 - [ ] Actual cover loads in the modal.
+- [ ] Volume count shows the number of active books, and "*n* of *total*" while filtering.
+- [ ] A semicolon-separated genre field shows the book under each of its genres.
+- [ ] Genre chips show All, the five most common genres, and More when there are more than five.
+- [ ] Selecting "Fiction" does not show a book whose only genre is "Historical Fiction".
+- [ ] Genre and search filters combine, and both are kept in the page address.
+- [ ] Hover card appears on desktop hover and keyboard focus, never on touch, and shows no availability.
 
 ### Borrowing
 - [ ] Public user can submit a request using the borrow passcode.

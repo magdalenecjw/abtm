@@ -1,7 +1,7 @@
 # Automated Book Teller Machine — UI Specification (Screens & Information Architecture)
 
 **Document status:** Supplements `Technical_Specifications.md` v1.2 and `docs/workflows.md`
-**Date:** 12 September 2026
+**Date:** 12 September 2026 · **Revised:** 11 October 2026 (catalogue redesign — §1.1 header and hover rule, new §1.3 Catalogue content)
 
 This document defines the complete screen inventory, navigation structure, and screen-level content for both the public and admin experiences. Detailed step-by-step *behaviour* for each workflow (form validation, state transitions, server logic) lives in `docs/workflows.md` — this document focuses on *what exists* and *how it's organised*, not the mechanics of each action.
 
@@ -22,9 +22,10 @@ There are **no individual book pages** (per §14 of the technical spec) — book
 
 ### 1.1 Public navigation
 
-- **Header:** two nav items — **Catalogue** and **My Reads** — plus a persistent **"?" help icon**.
+- **Header:** the logo icon on the left (links home), then two nav items — **Catalogue** and **My Reads** — plus a persistent **"?" help icon**. The library's name is not shown in the header; it appears once, in the catalogue hero (§1.3). See `visual-system.md` §9.1.
 - **Help icon:** click-to-open (not hover — hover has no reliable mobile equivalent), shows **one combined static popup** covering both "how borrowing works" (passcode → request → approval → management link) and a brief note on My Reads / NLB tagging. Not a separate route.
-- Screens 2–5 are reached only through interaction on the Catalogue (or directly via an emailed link for screen 5) — none has its own nav entry.
+- **Hover in general:** hover may *preview* information (e.g. the spine hover card, §1.3) but must never be the only way to reach something or perform an action, because it has no reliable mobile equivalent.
+- Screens 2–5 are reached only through interaction on the Catalogue (or directly via the saved management link for screen 5) — none has its own nav entry.
 
 ### 1.2 My Reads (public feed) — content
 
@@ -35,6 +36,20 @@ There are **no individual book pages** (per §14 of the technical spec) — book
   - `Owned` → entry links through to the same book details modal used on the catalogue (via catalogue navigation, not a distinct URL), so a friend can see live availability/borrow status.
   - `NLB` → shown as an informational label only (e.g. "Available via NLB") — no live link or integration with the actual NLB system.
   - Blank/other → no label shown.
+
+### 1.3 Catalogue (home) — content
+
+Top to bottom (visual treatment in `visual-system.md` §7, §9–11):
+
+1. **Hero** — the library name "(automated) book teller machine" as a small label; the headline **"Please make a withdrawal"**; and the volume count ("97 volumes", or "12 of 97 volumes" while a search or genre filter is active).
+2. **Search line** — one field searching title, author and genre.
+3. **Genre chips** — **All**, the five most common genres, and **More (n)** to reveal the rest. One genre selected at a time. A book whose genre field lists several genres separated by semicolons appears under each of them.
+4. **Shelves** — every matching active book as a spine, on stacked shelves.
+   - **Hover / keyboard focus** on a spine (desktop pointer or keyboard only) shows a **hover card**: full title, author, genres, "Click for availability".
+   - **Click / tap** a spine → Book details modal (screen 2).
+5. **Empty result** — if nothing matches, the shelves are replaced with "Nothing on the shelf matches that."
+
+Search text and the selected genre live in the page address (`?q=…&genre=…`), so a filtered view can be refreshed, shared, or reached with the back button, and works without JavaScript.
 
 ---
 
@@ -132,5 +147,5 @@ Fully specified in `docs/workflows.md` §7. Manual CSV upload → shelf filterin
 
 ## 4. Open items not covered by this document
 
-- Exact visual treatment for each screen (typography, colour, spacing, borders) — deferred to the visual design step.
+- Exact visual treatment for the remaining screens (typography, colour, spacing, borders) — see `visual-system.md`; the catalogue page is fully specified there (§7, §9–11).
 - Detailed field-by-field layout/wireframes for each screen — this document defines *what* exists and *where it lives*, not pixel-level layout.
