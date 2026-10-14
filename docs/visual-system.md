@@ -1,7 +1,7 @@
 # Automated Book Teller Machine — Visual System
 
 **Document status:** Complete — typography, color palette, spacing, borders/corners, buttons, modal treatment, book spines, mobile behaviour, catalogue hero, genre chips, and hover card all defined.
-**Date:** 12 September 2026 · **Revised:** 12 October 2026 (catalogue redesign; teller touches; header)
+**Date:** 12 September 2026 · **Revised:** 14 October 2026 (catalogue redesign; teller touches; header; colour contrast)
 
 This document defines the concrete visual language implementing the design direction set out in §31 of `Technical_Specifications.md` (classical, refined, quiet, clean, contemporary, typography-led, generous whitespace, thin rules, restrained borders — explicitly avoiding parchment, sepia, distressed textures, Victorian ornament, and generic SaaS aesthetics).
 
@@ -28,6 +28,8 @@ This document defines the concrete visual language implementing the design direc
 
 - **§9.1** — nav links in the label style; the current page as a filled pill; a small Admin link kept at the far right; a **double rule** under the header; the help card restyled to match the hover card.
 - **§4** — the header's double rule added as the second exception to the single-hairline rule.
+
+**14 October 2026 — colour contrast.** The live stylesheet had already darkened the sage accent and two status colours so they're readable as text on the cream background; this spec hadn't caught up. §2.2, §2.3 and §5 now list the values actually in use, with their contrast ratios. Rule going forward: any colour used for **text** must reach at least **4.5 : 1** against the background (WCAG AA).
 
 ---
 
@@ -88,17 +90,21 @@ Direction: a neutral, ink-and-paper-inspired base (not warm/aged — closer to a
 
 | Role | Color | Hex |
 |---|---|---|
-| Links, buttons, active nav state | Sage green | `#8A9A7E` |
+| Links, buttons, active nav state | Sage green | `#697560` (hover/pressed: `#596352`) |
+
+Contrast against the cream background: **4.5 : 1**. *(Originally `#8A9A7E`, which only reached 2.8 : 1 — too faint for link and button text; darkened in the build and recorded here in October 2026.)*
 
 Deliberately distinct from the "Available" status green below, even though both sit in the green family — different roles (interactive vs. status) that shouldn't be visually conflated, but the shared family keeps them feeling related rather than arbitrary.
 
 ### 2.3 Book status colors (Technical_Specifications.md §14–15)
 
-| Status | Color | Hex |
-|---|---|---|
-| Available | Forest green | `#3B5D45` |
-| Checked out | Amber / ochre | `#C08A3E` |
-| On loan | Soft terracotta | `#C1704F` |
+| Status | Color | Hex | Contrast on cream |
+|---|---|---|---|
+| Available | Forest green | `#3B5D45` | 6.9 : 1 |
+| Checked out | Amber / ochre | `#92692F` | 4.6 : 1 |
+| On loan | Soft terracotta | `#A45F43` | 4.5 : 1 |
+
+*Checked out and On loan were originally `#C08A3E` (2.8 : 1) and `#C1704F` (3.4 : 1); both were darkened in the build so the status text is readable, and are recorded here as of October 2026.*
 
 ### 2.4 Loan-duration flag colors (`docs/workflows.md` §5.3)
 
@@ -111,7 +117,7 @@ Terracotta family, graduated by intensity. No reinforcement beyond color shade (
 | Long loan (90–179 days) | Medium terracotta | `#A85838` |
 | Very long loan (180+ days) | Deep terracotta / rust | `#7A3E26` |
 
-*Note: "On loan" (book status) and "Needs attention" (loan-duration flag) intentionally share the same shade (`#C1704F`) — they appear in different contexts (public book status vs. admin dashboard flag) and are not expected to be seen side-by-side, so the overlap was judged acceptable rather than worth a further palette expansion.*
+*Note: these flag colours are **not yet used** in the build (the admin Requests screen currently shows flags as plain text). They'll be revisited — and checked against the 4.5 : 1 text rule — when the admin screens are restyled. The original note that "Needs attention" shares the "On loan" shade no longer holds, since "On loan" was darkened to `#A45F43`.*
 
 ### 2.5 Spine palette
 
@@ -162,7 +168,7 @@ Five steps, 8px base unit — matching the same "keep it minimal" philosophy as 
 
 | Type | Treatment | Used for |
 |---|---|---|
-| Primary | Sage green fill (`#8A9A7E`), cream text, pill shape | Main call-to-action per screen — "Request to borrow," "Submit," "Apply" |
+| Primary | Sage green fill (`#697560`; hover `#596352`), cream text, pill shape | Main call-to-action per screen — "Request to borrow," "Submit," "Apply" |
 | Secondary | Outline — sage border, no fill, sage text, pill shape | Lower-emphasis actions — "Cancel" (borrower-side), "Regenerate link" |
 | Destructive | Terracotta/rust fill (`#A85838`), cream text, pill shape | Actions that undo or remove something — admin "Cancel request," "Delete" on My Reads |
 
