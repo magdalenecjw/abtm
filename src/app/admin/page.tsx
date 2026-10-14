@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
-import { AdminHeader } from "./admin-header";
+import { AdminFooter, AdminHeader } from "./admin-header";
 import { AdminPageHeading } from "./admin-page-heading";
 import { getDashboardStats } from "./dashboard-actions";
 import { formatLongDate } from "@/lib/borrowing/receipt";
@@ -126,6 +126,7 @@ export default async function AdminDashboardPage() {
         <LedgerGroup title="Needs attention" tiles={needsAttention} needsYou />
         <LedgerGroup title="The library" tiles={library} />
       </div>
+      <AdminFooter />
     </main>
   );
 }

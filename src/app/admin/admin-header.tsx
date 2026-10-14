@@ -38,8 +38,8 @@ export function AdminHeader({ current }: { current: AdminPage }) {
         <Image
           src="/logo-icon.png"
           alt=""
-          width={32}
-          height={32}
+          width={36}
+          height={36}
           className="rounded-[3px]"
         />
         <span>Back office</span>
@@ -74,6 +74,8 @@ export function AdminHeader({ current }: { current: AdminPage }) {
         />
       </nav>
 
+      {/* Desktop only — on phones these move to AdminFooter so the
+          header stays short (visual-system.md §14.1). */}
       <div className="admin-header-right">
         <Link href="/" className="admin-quiet-link">
           View site
@@ -121,5 +123,26 @@ function MenuGroup({
         ))}
       </div>
     </details>
+  );
+}
+
+/**
+ * Phone-only footer for the back office (visual-system.md §14.1): on
+ * narrow screens "View site" and "Sign out" sit here instead of in the
+ * header, so the header doesn't wrap onto a third line. Hidden on wider
+ * screens, where the header shows them.
+ */
+export function AdminFooter() {
+  return (
+    <footer className="admin-footer">
+      <Link href="/" className="admin-quiet-link">
+        View site
+      </Link>
+      <form action={logout}>
+        <button type="submit" className="admin-quiet-link">
+          Sign out
+        </button>
+      </form>
+    </footer>
   );
 }

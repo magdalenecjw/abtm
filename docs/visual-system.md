@@ -431,7 +431,7 @@ The admin area uses the same visual language as the public site, tuned for work:
 
 Chosen over a left sidebar so tables keep the full page width.
 
-- **Left:** logo (32px) and the label "Back office" (Inter 10px, uppercase, `0.22em`, muted), linking to Today's ledger.
+- **Left:** logo (36px) and the label "Back office" (Inter 10px, uppercase, `0.22em`, muted), linking to Today's ledger.
 - **Menu** (Inter 11px, uppercase, `0.18em`, pill hit areas as §9.1):
   - **Today's ledger** · **Requests**
   - **Catalogue ▾** → Books · Sync spreadsheet · Covers
@@ -440,7 +440,8 @@ Chosen over a left sidebar so tables keep the full page width.
   - **Current page:** filled pill, as the public header. When the current page is inside a drop-down, the drop-down's label is the filled pill and the page is shown in medium weight inside it.
 - **Right:** "View site" and "Sign out" in the small muted label style.
 - **Double rule** underneath, as the public header (§9.1).
-- **Phone:** the row wraps — logo and menu first, "View site / Sign out" on their own line aligned right.
+- **Size and spacing match the public header exactly** (§9.1): same space above (48px desktop, 24px phone), 36px logo, 16px to the double rule, 40px below it — so switching between public and admin pages doesn't make the header jump.
+- **Phone:** the logo (the "Back office" label is kept for screen readers but not shown) and the menu, wrapping onto two lines at most; "View site" and "Sign out" move to a small footer at the bottom of every admin page, right-aligned above a hairline.
 
 The admin login page keeps the simple centred layout with the logo and library name (it has no menu).
 

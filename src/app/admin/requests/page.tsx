@@ -1,4 +1,4 @@
-import { AdminHeader } from "../admin-header";
+import { AdminFooter, AdminHeader } from "../admin-header";
 import { AdminPageHeading } from "../admin-page-heading";
 import { getAllRequestsForAdmin } from "./actions";
 import {
@@ -290,6 +290,7 @@ export default async function AdminRequestsPage({
           </div>
         </>
       )}
+      <AdminFooter />
     </main>
   );
 }

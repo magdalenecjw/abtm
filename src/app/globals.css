@@ -1354,16 +1354,18 @@ a {
    Back office — admin screens (visual-system.md §14)
    ====================================================================== */
 
+/* Same top spacing as the public pages (py-6 / sm:py-12) so the two
+   headers sit at exactly the same height. */
 .admin-page {
   width: 100%;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 20px 16px 56px;
+  padding: 24px 16px 56px;
 }
 
 @media (min-width: 640px) {
   .admin-page {
-    padding: 28px 24px 64px;
+    padding: 48px 24px 64px;
   }
 }
 
@@ -1375,8 +1377,9 @@ a {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 8px;
-  margin-bottom: 36px;
-  padding-bottom: 14px;
+  /* Matches .site-header (visual-system.md §9.1). */
+  margin-bottom: 40px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--rule);
 }
 
@@ -1518,10 +1521,47 @@ a {
   outline-offset: 3px;
 }
 
+.admin-footer {
+  display: none;
+}
+
 @media (max-width: 760px) {
+  /* On phones View site / Sign out move to the footer. */
   .admin-header-right {
-    width: 100%;
+    display: none;
+  }
+
+  /* Logo only, so the menu can start beside it (two lines, not three). */
+  .admin-brand {
+    margin-right: 4px;
+  }
+
+  .admin-header {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
+
+  .admin-nav {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .admin-brand span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .admin-footer {
+    display: flex;
     justify-content: flex-end;
+    gap: 16px;
+    margin-top: 40px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rule);
   }
 
   .admin-nav-link {

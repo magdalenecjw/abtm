@@ -1,4 +1,4 @@
-import { AdminHeader } from "@/app/admin/admin-header";
+import { AdminFooter, AdminHeader } from "@/app/admin/admin-header";
 import { AdminPageHeading } from "@/app/admin/admin-page-heading";
 import { getBookDetailForAdmin, getLoanHistoryForBook } from "./actions";
 import { CoversForm } from "../covers/covers-form";
@@ -27,6 +27,7 @@ export default async function BookDetailPage({
       <main className="admin-page">
         <AdminHeader current="books" />
         <p>This book could not be found.</p>
+        <AdminFooter />
       </main>
     );
   }
@@ -123,6 +124,7 @@ export default async function BookDetailPage({
           </div>
         )}
       </section>
+      <AdminFooter />
     </main>
   );
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AdminHeader } from "../admin-header";
+import { AdminFooter, AdminHeader } from "../admin-header";
 import { AdminPageHeading } from "../admin-page-heading";
 import { getAllBooksForAdmin, type BookStatus } from "./actions";
 import { splitGenres } from "@/lib/catalogue/genres";
@@ -184,6 +184,7 @@ export default async function AdminBooksPage({
           </ul>
         </>
       )}
+      <AdminFooter />
     </main>
   );
 }

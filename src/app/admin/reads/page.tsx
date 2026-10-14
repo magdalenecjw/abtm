@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AdminHeader } from "../admin-header";
+import { AdminFooter, AdminHeader } from "../admin-header";
 import { AdminPageHeading } from "../admin-page-heading";
 import { getAllReadsForAdmin } from "./actions";
 import { DeleteButton } from "./delete-button";
@@ -136,6 +136,7 @@ export default async function AdminReadsPage() {
           </ul>
         </>
       )}
+      <AdminFooter />
     </main>
   );
 }
