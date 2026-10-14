@@ -1,7 +1,7 @@
 # Automated Book Teller Machine — UI Specification (Screens & Information Architecture)
 
 **Document status:** Supplements `Technical_Specifications.md` v1.2 and `docs/workflows.md`
-**Date:** 12 September 2026 · **Revised:** 11 October 2026 (catalogue redesign — §1.1 header and hover rule, new §1.3 Catalogue content; teller touches — §1.2 My Reads as "Transaction history", new §1.4 borrowing screens)
+**Date:** 12 September 2026 · **Revised:** 11 October 2026 (catalogue redesign — §1.1 header and hover rule, new §1.3 Catalogue content; teller touches — §1.2 My Reads as "Transaction history", new §1.4 borrowing screens) · 12 October 2026 (§1.1 header: current-page marker, Admin link)
 
 This document defines the complete screen inventory, navigation structure, and screen-level content for both the public and admin experiences. Detailed step-by-step *behaviour* for each workflow (form validation, state transitions, server logic) lives in `docs/workflows.md` — this document focuses on *what exists* and *how it's organised*, not the mechanics of each action.
 
@@ -22,8 +22,8 @@ There are **no individual book pages** (per §14 of the technical spec) — book
 
 ### 1.1 Public navigation
 
-- **Header:** the logo icon on the left (links home), then two nav items — **Catalogue** and **My Reads** — plus a persistent **"?" help icon**. The library's name is not shown in the header; it appears once, in the catalogue hero (§1.3). See `visual-system.md` §9.1.
-- **Help icon:** click-to-open (not hover — hover has no reliable mobile equivalent), shows **one combined static popup** covering both "how borrowing works" (passcode → request → approval → management link) and a brief note on My Reads / NLB tagging. Not a separate route.
+- **Header:** the logo icon on the left (links home), then two nav items — **Catalogue** and **My Reads** — with the **current page highlighted**, a persistent **"?" help icon**, and a small, muted **Admin** link at the far right (for the owner; it leads to the admin login). The library's name is not shown in the header; it appears once, in the catalogue hero (§1.3). See `visual-system.md` §9.1.
+- **Help icon:** click-to-open (not hover — hover has no reliable mobile equivalent), shows **one combined static popup** covering both "how borrowing works" (passcode → request → approval → receipt link) and a brief note on My Reads ("On my shelf" / NLB labels). Not a separate route. Closes with "×", a click outside, or Escape.
 - **Hover in general:** hover may *preview* information (e.g. the spine hover card, §1.3) but must never be the only way to reach something or perform an action, because it has no reliable mobile equivalent.
 - Screens 2–5 are reached only through interaction on the Catalogue (or directly via the saved management link for screen 5) — none has its own nav entry.
 

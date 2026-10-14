@@ -1133,3 +1133,198 @@ a {
   text-align: center;
   text-transform: uppercase;
 }
+
+/* Public site header (visual-system.md §9.1) */
+
+.site-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 40px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Double rule: a second hairline 4px below the first — echoes the
+   double rules on spines and drawn covers (§4). */
+.site-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -5px;
+  left: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.site-logo {
+  display: inline-flex;
+  margin-right: auto;
+  border-radius: 3px;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-nav-link {
+  padding: 9px 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--foreground);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.site-nav-link:hover {
+  border-color: var(--accent);
+}
+
+/* Current page: filled pill, like the selected genre chip (§10). */
+.site-nav-link[aria-current="page"] {
+  border-color: var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.site-logo:focus-visible,
+.site-nav-link:focus-visible,
+.help-icon:focus-visible,
+.site-admin-link:focus-visible,
+.help-card-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 8px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 13px;
+  transition: border-color 150ms ease;
+}
+
+.help-icon:hover {
+  border-color: var(--accent);
+}
+
+/* Admin: deliberately quiet, set apart by a short vertical hairline. */
+.site-admin {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+  margin-left: 8px;
+  padding-left: 16px;
+  border-left: 1px solid var(--rule);
+}
+
+.site-admin-link {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  opacity: 0.75;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    color 150ms ease,
+    opacity 150ms ease;
+}
+
+.site-admin-link:hover {
+  color: var(--accent);
+  opacity: 1;
+}
+
+/* Help card — same style as the spine hover card (§11). Anchored to
+   the header (position: relative), aligned to its right edge. */
+.help-card {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  gap: 12px;
+  width: min(300px, calc(100vw - 32px));
+  padding: 16px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--background);
+  box-shadow: 0 12px 28px -12px rgb(43 41 37 / 25%);
+  font-size: 14px;
+}
+
+.help-card-close {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.help-card-title {
+  margin: 0;
+  font-family: var(--font-caslon), serif;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.help-card-list {
+  margin: 0;
+}
+
+.help-card-list dt {
+  margin-bottom: 2px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.help-card-list dd {
+  margin: 0 0 8px;
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    gap: 4px;
+  }
+
+  .site-nav {
+    gap: 2px;
+  }
+
+  .site-nav-link {
+    padding: 8px 9px;
+    letter-spacing: 0.1em;
+  }
+
+  .help-icon {
+    margin-left: 2px;
+  }
+
+  .site-admin {
+    margin-left: 2px;
+    padding-left: 8px;
+  }
+
+  .site-admin-link {
+    letter-spacing: 0.12em;
+  }
+}

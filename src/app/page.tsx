@@ -40,7 +40,7 @@ export default async function CataloguePage({
 
   return (
     <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-12 md:px-8">
-      <SiteHeader />
+      <SiteHeader current="catalogue" />
 
       <CatalogueHero
         volumeCount={formatVolumeCount(books.length, totalVolumes, isFiltered)}

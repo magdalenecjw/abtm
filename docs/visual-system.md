@@ -1,7 +1,7 @@
 # Automated Book Teller Machine — Visual System
 
 **Document status:** Complete — typography, color palette, spacing, borders/corners, buttons, modal treatment, book spines, mobile behaviour, catalogue hero, genre chips, and hover card all defined.
-**Date:** 12 September 2026 · **Revised:** 11 October 2026 (catalogue redesign; teller touches)
+**Date:** 12 September 2026 · **Revised:** 12 October 2026 (catalogue redesign; teller touches; header)
 
 This document defines the concrete visual language implementing the design direction set out in §31 of `Technical_Specifications.md` (classical, refined, quiet, clean, contemporary, typography-led, generous whitespace, thin rules, restrained borders — explicitly avoiding parchment, sepia, distressed textures, Victorian ornament, and generic SaaS aesthetics).
 
@@ -23,6 +23,11 @@ This document defines the concrete visual language implementing the design direc
 - **§12** (new) — My Reads becomes **"Transaction history"**: matching hero, reads as catalogue cards, rating dots, source pills, drawn covers for books without one.
 - **§13** (new) — borrowing-flow wording ("Please enter your passcode", "Continue", "Complete withdrawal") and the **receipt slip** used for the confirmation and the request page.
 - Considered and not adopted: "Available balance: 97 volumes" in the catalogue hero — the count stays "97 volumes".
+
+**12 October 2026 — header.** The public header was the last part still in the old plain-link style. Agreed via a clickable mockup comparing a single hairline with a double rule, two current-page styles, and Admin in the header or footer.
+
+- **§9.1** — nav links in the label style; the current page as a filled pill; a small Admin link kept at the far right; a **double rule** under the header; the help card restyled to match the hover card.
+- **§4** — the header's double rule added as the second exception to the single-hairline rule.
 
 ---
 
@@ -142,7 +147,7 @@ Five steps, 8px base unit — matching the same "keep it minimal" philosophy as 
 
 ## 4. Borders, rules, and corners
 
-- **Rule weight:** 1px hairline throughout, using the border color (`#D9D3C7`) — never a heavier "divider" style. The one exception is the shelf ledge (§7.3), which is a 10px solid band because it represents a physical shelf, not a divider.
+- **Rule weight:** 1px hairline throughout, using the border color (`#D9D3C7`) — never a heavier "divider" style. Two exceptions: the shelf ledge (§7.3), a 10px solid band because it represents a physical shelf; and the public header's **double rule** (§9.1) — two hairlines 4px apart, echoing the double rules on spines and drawn covers.
 - **Where rules appear:** under the site header; under the search line (a single bottom rule, no box — §9.3); between rows in table-style admin screens (Requests, Books list, My Reads list) — hairline row dividers, not zebra-striping; framing the book details modal and the hover card.
 - **Corner radius — two shapes, by role:**
   - **Pill (fully rounded, `999px`):** anything you press or that labels a state — all buttons (§5), genre chips (§10), status badges in the details modal, and the "?" help icon (circular).
@@ -248,9 +253,15 @@ The catalogue (home) page reads top to bottom: header → hero → search → ge
 ### 9.1 Site header
 
 - **Left:** the logo icon only (36×36px, 3px corners), linking home. Its accessible label is the library name.
-- **Right:** Catalogue · My Reads · "?" help icon (circular, §4).
-- Hairline rule underneath.
+- **Right**, in order:
+  1. **Catalogue · My Reads** — Inter label style (11px, uppercase, `0.2em`), no underlines, each a pill-shaped hit area (9px × 14px padding, transparent border). Hover: a sage outline.
+     - **Current page:** a **filled pill** in the primary text colour with cream text — the same treatment as the selected genre chip (§10). Marked with `aria-current="page"`.
+  2. **"?" help icon** — 32px circle, hairline border, sage border on hover.
+  3. **Admin** — a small link set apart by a short vertical hairline: Inter 10px label style, muted, 75% opacity; sage on hover. Kept deliberately quiet — friends don't need it.
+- **Rule underneath:** a **double rule** — two 1px hairlines 4px apart (§4).
 - The library's name is **not** repeated in the header — it appears once, in the hero (§9.2).
+- **Help card** (opened by "?"): the same card style as the spine hover card (§11) — 300px wide, hairline border, 3px corners, 16px padding, soft shadow — aligned under the icon's right edge. Heading "How it works" in Libre Caslon Text 18px; two short sections ("Borrowing", "My Reads") with label-style headings. Closes with "×", a click outside, or Escape.
+- **Phone:** the same row; link padding tightens to 8px × 10px and gaps shrink so everything fits at 360px wide.
 
 ### 9.2 Hero
 

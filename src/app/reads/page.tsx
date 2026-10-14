@@ -14,7 +14,7 @@ export default async function ReadsPage() {
 
   return (
     <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-12 md:px-8">
-      <SiteHeader />
+      <SiteHeader current="reads" />
 
       <section className="flex flex-col items-center gap-4 pt-6 pb-10 text-center">
         <p className="hero-label">{LIBRARY_NAME}</p>
