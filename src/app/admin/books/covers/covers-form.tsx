@@ -9,6 +9,7 @@ import {
   type CoverApplyResult,
 } from "./actions";
 import type { CoverFileMatch } from "@/lib/covers/match";
+import { FileDrop } from "../../file-drop";
 
 type PreviewEntry = {
   file: File;
@@ -92,27 +93,23 @@ export function CoversForm() {
     <div>
       {phase.step === "idle" && (
         <div>
-          <label htmlFor="cover-files" className="text-sm block mb-2">
-            Cover image(s) — filename must exactly match a book_id (e.g.
-            BK0001.jpg)
-          </label>
-          <input
-            ref={inputRef}
+          <FileDrop
             id="cover-files"
-            type="file"
+            inputRef={inputRef}
             accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
             multiple
             disabled={isPending}
-            onChange={(e) => handleFilesSelected(e.target.files)}
-            className="file-input"
+            onFiles={handleFilesSelected}
+            title="Cover images"
+            hint="Name each file after its book_id, e.g. BK0001.jpg. JPEG, PNG, WebP or HEIC, up to 5MB."
           />
-          {isPending && <p className="text-sm mt-2">Checking files…</p>}
+          {isPending && <p className="admin-sub mt-2">Checking files…</p>}
         </div>
       )}
 
       {phase.step === "preview" && (
         <div>
-          <h2 className="book-title text-lg mb-3">Preview</h2>
+          <h2 className="admin-section-title">Preview</h2>
           <ul className="flex flex-wrap gap-4 list-none p-0 mb-4">
             {phase.entries.map((entry, i) => (
               <li key={i} className="w-32">
@@ -122,26 +119,28 @@ export function CoversForm() {
                   alt={entry.file.name}
                   className="w-32 h-32 object-cover rounded-[3px] border border-[var(--rule)]"
                 />
-                <p className="text-sm break-all mt-1">{entry.file.name}</p>
+                <p className="admin-sub mt-1 break-all">{entry.file.name}</p>
                 {entry.validationError && (
-                  <p role="alert" className="text-sm text-[var(--terracotta)]">
+                  <p role="alert" className="admin-action-error">
                     {entry.validationError}
                   </p>
                 )}
                 {!entry.validationError && entry.match?.status === "new" && (
-                  <p className="text-sm">New cover for {entry.match.bookIdCode}</p>
+                  <span className="preview-pill preview-new">
+                    New · {entry.match.bookIdCode}
+                  </span>
                 )}
                 {!entry.validationError &&
                   entry.match?.status === "replacement" && (
-                    <p className="text-sm">
-                      Will replace existing cover for {entry.match.bookIdCode}
-                    </p>
+                    <span className="preview-pill preview-replace">
+                      Replaces · {entry.match.bookIdCode}
+                    </span>
                   )}
                 {!entry.validationError &&
                   entry.match?.status === "unmatched" && (
-                    <p role="alert" className="text-sm text-[var(--terracotta)]">
-                      No matching book — will not be uploaded
-                    </p>
+                    <span role="alert" className="preview-pill preview-unmatched">
+                      No matching book — skipped
+                    </span>
                   )}
               </li>
             ))}
@@ -170,11 +169,18 @@ export function CoversForm() {
 
       {phase.step === "result" && (
         <div>
-          <h2 className="book-title text-lg mb-3">Result</h2>
-          <ul className="text-sm mb-4">
+          <h2 className="admin-section-title">Result</h2>
+          <ul className="admin-result-list">
             {phase.results.map((r, i) => (
               <li key={i}>
-                {r.filename}: {r.ok ? "Uploaded" : `Failed — ${r.reason}`}
+                <span>{r.filename}</span>
+                {r.ok ? (
+                  <span className="preview-pill preview-new">Uploaded</span>
+                ) : (
+                  <span className="preview-pill preview-unmatched">
+                    Failed — {r.reason}
+                  </span>
+                )}
               </li>
             ))}
           </ul>

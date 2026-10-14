@@ -5,7 +5,8 @@
   --foreground: #2b2925;
 
   --rule: #d9d3c7;
-  --muted: #7d786f;
+  /* 4.7 : 1 on cream (was #7d786f, 4.1 : 1) — visual-system.md §2.1 */
+  --muted: #736e65;
   --accent: #697560;
 
   --available: #3b5d45;
@@ -1347,4 +1348,912 @@ a {
   .site-admin-link {
     letter-spacing: 0.12em;
   }
+}
+
+/* ======================================================================
+   Back office — admin screens (visual-system.md §14)
+   ====================================================================== */
+
+.admin-page {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px 16px 56px;
+}
+
+@media (min-width: 640px) {
+  .admin-page {
+    padding: 28px 24px 64px;
+  }
+}
+
+/* Header and menu (§14.1) */
+
+.admin-header {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 8px;
+  margin-bottom: 36px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.admin-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -5px;
+  left: 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.admin-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 12px;
+  border-radius: 3px;
+  text-decoration: none;
+}
+
+.admin-brand span {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.admin-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-right: auto;
+}
+
+.admin-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 13px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--foreground);
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  line-height: 1;
+  list-style: none;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.admin-nav-link::-webkit-details-marker {
+  display: none;
+}
+
+.admin-nav-link:hover {
+  border-color: var(--accent);
+}
+
+.admin-nav-link[aria-current="page"],
+.admin-menu-group[data-active] > .admin-nav-link {
+  border-color: var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.admin-caret {
+  font-size: 10px;
+}
+
+.admin-menu-group {
+  position: relative;
+}
+
+.admin-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 200px;
+  padding: 6px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--background);
+  box-shadow: 0 12px 28px -12px rgb(43 41 37 / 25%);
+}
+
+.admin-menu a {
+  padding: 8px 10px;
+  border-radius: 3px;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.admin-menu a:hover {
+  background: rgb(105 117 96 / 8%);
+}
+
+.admin-menu a[aria-current="page"] {
+  font-weight: 500;
+}
+
+.admin-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-quiet-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 150ms ease;
+}
+
+.admin-quiet-link:hover {
+  color: var(--accent);
+}
+
+.admin-brand:focus-visible,
+.admin-nav-link:focus-visible,
+.admin-menu a:focus-visible,
+.admin-quiet-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 760px) {
+  .admin-header-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .admin-nav-link {
+    padding: 8px 10px;
+    letter-spacing: 0.12em;
+  }
+}
+
+/* Page heading (§14.2) */
+
+.admin-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin-bottom: 28px;
+}
+
+.admin-eyebrow {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.admin-title {
+  margin: 0;
+  font-family: var(--font-caslon), serif;
+  font-size: clamp(34px, 5vw, 52px);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.admin-title-small {
+  margin-bottom: 20px;
+  font-size: 36px;
+}
+
+.admin-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Login */
+
+.admin-login {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 64px 16px;
+}
+
+.admin-login-card {
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid var(--rule);
+}
+
+/* Today's ledger (§14.3) */
+
+.ledger {
+  display: grid;
+  gap: 28px;
+}
+
+.ledger-group-title {
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.ledger-tiles {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
+}
+
+.ledger-tile {
+  display: grid;
+  gap: 4px;
+  padding: 18px 18px 16px;
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  color: var(--foreground);
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.ledger-tile:last-child {
+  border-right: 0;
+}
+
+.ledger-tile:hover {
+  background: rgb(105 117 96 / 6%);
+}
+
+.ledger-tile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.ledger-num {
+  font-family: var(--font-caslon), serif;
+  font-size: 44px;
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1;
+}
+
+.ledger-tile-zero .ledger-num {
+  color: var(--muted);
+}
+
+.ledger-cap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.ledger-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--terracotta);
+}
+
+.ledger-go {
+  color: var(--accent);
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.ledger-tile:hover .ledger-go,
+.ledger-tile:focus-visible .ledger-go {
+  opacity: 1;
+}
+
+@media (max-width: 760px) {
+  .ledger-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ledger-tile {
+    border-right: 1px solid var(--rule);
+  }
+
+  .ledger-tile:nth-child(2n),
+  .ledger-tile:last-child {
+    border-right: 0;
+  }
+
+  /* An odd tile out spans the full row rather than sitting alone. */
+  .ledger-tile:last-child:nth-child(odd) {
+    grid-column: span 2;
+  }
+
+  .ledger-num {
+    font-size: 36px;
+  }
+}
+
+/* Shared admin bits */
+
+.admin-sub {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-muted {
+  color: var(--muted);
+}
+
+.admin-nowrap {
+  white-space: nowrap;
+}
+
+.admin-book-title {
+  display: block;
+  font-family: var(--font-caslon), serif;
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.admin-status-muted {
+  color: var(--muted);
+}
+
+.status-badge + .admin-sub {
+  margin-top: 4px;
+}
+
+/* Compact pill buttons for dense admin rows (32px tall) */
+.admin-compact {
+  min-height: 32px;
+  padding: 4px 14px;
+  font-size: 13px;
+}
+
+.admin-quiet-pill {
+  border-color: var(--rule);
+  color: var(--foreground);
+}
+
+.admin-quiet-pill:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: transparent;
+  color: var(--foreground);
+}
+
+/* Filters (§14.4) — each pill is a styled checkbox */
+
+.admin-filters {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.admin-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-filter-label {
+  min-width: 64px;
+  margin-right: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.filter-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.filter-pill input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.filter-pill:hover {
+  border-color: var(--accent);
+}
+
+.filter-pill:has(input:checked) {
+  border-color: var(--foreground);
+  background: var(--foreground);
+  color: var(--background);
+}
+
+.filter-pill:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.admin-search-line {
+  flex: 1 1 220px;
+  max-width: 360px;
+  padding: 6px 0;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  background: transparent;
+  color: var(--foreground);
+  font-size: 15px;
+  outline: none;
+}
+
+.admin-search-line::placeholder {
+  color: var(--muted);
+  font-family: var(--font-caslon), serif;
+  font-style: italic;
+}
+
+.admin-search-line:focus {
+  border-bottom-color: var(--accent);
+}
+
+.admin-search-line:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* Tables (§14.4, shared by §14.5) */
+
+.admin-table-wrap {
+  overflow-x: auto;
+  border-top: 1px solid var(--rule);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.admin-table th {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.admin-table td {
+  padding: 16px 10px;
+  border-bottom: 1px solid var(--rule);
+  font-variant-numeric: tabular-nums;
+  vertical-align: top;
+}
+
+.admin-table tbody tr:hover td {
+  background: rgb(105 117 96 / 3%);
+}
+
+/* Flag pills (§2.4) */
+
+.flag-pill {
+  display: inline-block;
+  padding: 1px 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.flag-not_yet_collected {
+  border-color: #d9a98a;
+  background: #f6e7dd;
+  color: #8a4b2f;
+}
+
+.flag-needs_attention {
+  background: #efd3c2;
+  color: #7e3f25;
+}
+
+.flag-long_loan {
+  background: #a85838;
+  color: #fdfbf7;
+}
+
+.flag-very_long_loan {
+  background: #7a3e26;
+  color: #fdfbf7;
+}
+
+.admin-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 14px;
+}
+
+/* Row actions */
+
+.admin-actions {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  min-width: 230px;
+}
+
+.admin-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+}
+
+.admin-action-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.admin-action-link:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.admin-action-link:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.admin-action-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.admin-action-error {
+  margin: 0;
+  color: var(--terracotta);
+  font-size: 13px;
+}
+
+.admin-date-input {
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: #fdfbf7;
+  color: var(--foreground);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-date-input:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.admin-new-link {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  max-width: 320px;
+  padding: 10px;
+  border: 1px dashed var(--foreground);
+  border-radius: 3px;
+}
+
+.admin-new-link-label {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.admin-new-link-url {
+  margin: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* Phone cards (§8, §14.4) */
+
+.admin-cards {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--rule);
+  list-style: none;
+}
+
+.admin-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.admin-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-card-facts {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 6px 12px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.admin-card-facts dt {
+  padding-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.admin-card-facts dd {
+  margin: 0;
+}
+
+/* Table on wider screens, one card per row on phones (§8). Done here
+   rather than with Tailwind's hidden/md:block, because unlayered rules
+   like .admin-cards { display: grid } would override those utilities. */
+@media (max-width: 767px) {
+  .admin-desktop-only {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .admin-phone-only {
+    display: none;
+  }
+}
+
+/* Shared admin sections, facts and links (§14.5) */
+
+.admin-row-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.admin-row-link:hover .admin-book-title {
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 4px;
+}
+
+.admin-row-link:focus-visible {
+  border-radius: 3px;
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.admin-hidden-pill {
+  display: inline-block;
+  padding: 0 9px;
+  border: 1px dashed var(--muted);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.admin-section {
+  margin-bottom: 40px;
+}
+
+.admin-section-title {
+  margin: 0 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.admin-section-intro {
+  margin: 0 0 16px;
+  font-size: 14px;
+}
+
+.admin-section-note {
+  margin-top: 12px;
+}
+
+.admin-facts {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 10px 16px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.admin-facts dt {
+  padding-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.admin-facts dd {
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .admin-facts {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .admin-facts dd {
+    margin-bottom: 10px;
+  }
+}
+
+.admin-action-danger {
+  color: var(--terracotta);
+}
+
+.admin-action-danger:hover:not(:disabled) {
+  color: #7a3e26;
+}
+
+/* Upload drop area (§14.5) */
+
+.file-drop {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  max-width: 560px;
+  padding: 20px;
+  border: 1px dashed var(--muted);
+  border-radius: 3px;
+  background: #fdfbf7;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.file-drop:hover,
+.file-drop[data-dragging] {
+  border-color: var(--accent);
+  background: rgb(105 117 96 / 6%);
+}
+
+.file-drop[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.file-drop:has(.file-drop-input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.file-drop-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.file-drop-title {
+  font-family: var(--font-caslon), serif;
+  font-size: 18px;
+}
+
+.file-drop-hint {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.file-drop-button {
+  margin-top: 6px;
+  pointer-events: none;
+}
+
+.file-drop-chosen {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Preview / result pills (§14.5) */
+
+.preview-pill {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 0 9px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.preview-new {
+  color: var(--available);
+}
+
+.preview-replace {
+  color: var(--checked-out);
+}
+
+.preview-unmatched {
+  color: var(--terracotta);
+}
+
+.admin-subsection-title {
+  margin: 16px 0 6px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.admin-result-list {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 0;
+  font-size: 14px;
+  list-style: none;
+}
+
+.admin-result-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }

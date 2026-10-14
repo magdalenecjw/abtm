@@ -56,5 +56,33 @@ export function formatDateOnly(isoDate: string): string {
   return `${d} ${month} ${y}`;
 }
 
+/** Long-form date in library time, e.g. "Wednesday 14 October 2026". */
+export function formatLongDate(now: Date = new Date()): string {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: LIBRARY_TIME_ZONE,
+    })
+      .formatToParts(now)
+      .map((p) => [p.type, p.value]),
+  );
+  return `${parts.weekday} ${parts.day} ${parts.month} ${parts.year}`;
+}
+
+/**
+ * Whole days from a date-only value ("2026-08-05") to today in library
+ * time — the "days out" shown next to a collection date.
+ */
+export function daysSince(isoDate: string, now: Date = new Date()): number {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const [ty, tm, td] = todayInLibraryTime(now).split("-").map(Number);
+  if (!y || !m || !d) return 0;
+  const ms = Date.UTC(ty, tm - 1, td) - Date.UTC(y, m - 1, d);
+  return Math.max(0, Math.round(ms / 86_400_000));
+}
+
 /** The three ways the slip can describe a request's status. */
 export type ReceiptStatus = "pending" | "approved" | "inactive";

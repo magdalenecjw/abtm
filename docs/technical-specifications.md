@@ -1,7 +1,7 @@
 # Automated Book Teller Machine — Formal Technical Specification
 
 **Document status:** Development-ready specification  
-**Version:** 1.5  
+**Version:** 1.6  
 **Date:** 12 September 2026 · **Revised:** 11 October 2026
 
 ## Changelog
@@ -40,6 +40,12 @@
 - **§19** — the public My Reads page is presented as "Transaction history": read cards with rating dots, "On my shelf" / "NLB" pills, genre label pills, and drawn covers where none exists. No data changes; `date_read` still never shown.
 - **§10–11** — borrowing-flow wording changes ("Please enter your passcode", "Continue", "Complete withdrawal"), and the confirmation and request page are shown as a receipt slip. The slip adds two items for the borrower's own request: the **book title** and the **date/time requested** (`requested_at`). Behaviour, validation and error messages are unchanged.
 - **§35** — acceptance criteria added for both.
+- No database or migration changes.
+
+**v1.5 → v1.6** — back office restyle and a contrast pass (`docs/visual-system.md` §2, §14; `docs/ui-specification.md` §2.1–2.3):
+- **§20** — the admin dashboard is presented as "Today's ledger": the same eight figures, grouped into *Needs attention* and *The library*. `docs/ui-specification.md` §2.2 is the authoritative list.
+- **§12** — admin navigation becomes a top-bar menu; Requests gains a Collected column (date and days out) and coloured flag pills. Behaviour unchanged. The collection date now defaults to today (library time) and can't be set in the future.
+- **§31** — all text colours must reach at least 4.5 : 1 contrast (WCAG AA); the muted grey was darkened to meet it.
 - No database or migration changes.
 
 Full step-by-step reasoning for all workflow decisions lives in `docs/workflows.md`, which this document points to rather than duplicates.
@@ -627,6 +633,8 @@ There is no separate `source_detail` field.
 
 ## 20. Admin Dashboard
 
+> Superseded in detail by `docs/ui-specification.md` §2.2 ("Today's ledger") — kept below as the original sketch.
+
 Suggested overview:
 
 ```text
@@ -844,6 +852,8 @@ Desired language:
 - functional sans-serif typography where appropriate
 
 The site should feel like a modern digital interface for a well-kept private library.
+
+Accessibility floor: every colour used for text must reach at least **4.5 : 1** contrast against its background (WCAG AA). Exact values live in `docs/visual-system.md` §2.
 
 ## 32. Responsive Requirements
 

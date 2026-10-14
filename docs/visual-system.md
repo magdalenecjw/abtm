@@ -1,7 +1,7 @@
 # Automated Book Teller Machine — Visual System
 
 **Document status:** Complete — typography, color palette, spacing, borders/corners, buttons, modal treatment, book spines, mobile behaviour, catalogue hero, genre chips, and hover card all defined.
-**Date:** 12 September 2026 · **Revised:** 14 October 2026 (catalogue redesign; teller touches; header; colour contrast)
+**Date:** 12 September 2026 · **Revised:** 14 October 2026 (catalogue redesign; teller touches; header; colour contrast; back office)
 
 This document defines the concrete visual language implementing the design direction set out in §31 of `Technical_Specifications.md` (classical, refined, quiet, clean, contemporary, typography-led, generous whitespace, thin rules, restrained borders — explicitly avoiding parchment, sepia, distressed textures, Victorian ornament, and generic SaaS aesthetics).
 
@@ -30,6 +30,12 @@ This document defines the concrete visual language implementing the design direc
 - **§4** — the header's double rule added as the second exception to the single-hairline rule.
 
 **14 October 2026 — colour contrast.** The live stylesheet had already darkened the sage accent and two status colours so they're readable as text on the cream background; this spec hadn't caught up. §2.2, §2.3 and §5 now list the values actually in use, with their contrast ratios. Rule going forward: any colour used for **text** must reach at least **4.5 : 1** against the background (WCAG AA).
+
+**14 October 2026 — back office.** The admin screens restyled to match the public site, agreed via a clickable mockup (top-bar menu chosen over a left sidebar, to keep the full width for tables).
+
+- **§2.1** — muted text darkened from `#7D786F` (4.1 : 1) to `#736E65` (4.7 : 1), site-wide.
+- **§2.4** — loan-duration flags defined as readable pills (fill + text pairs, all ≥ 4.9 : 1).
+- **§14** (new) — the back office: top-bar menu, page headings, "Today's ledger" dashboard, the Requests table, and rules for the remaining admin screens.
 
 ---
 
@@ -82,7 +88,7 @@ Direction: a neutral, ink-and-paper-inspired base (not warm/aged — closer to a
 |---|---|---|
 | Background | Cream | `#FAF6EF` |
 | Primary text | Warm near-black | `#2B2925` |
-| Muted text (placeholders, captions) | Warm grey | `#7D786F` |
+| Muted text (placeholders, captions, labels) | Warm grey | `#736E65` — 4.7 : 1 on cream *(was `#7D786F`, 4.1 : 1; darkened October 2026)* |
 | Borders / rules | Soft warm grey | `#D9D3C7` |
 | Shelf ledge | Pale stone | `#E4DDCF` |
 
@@ -108,16 +114,16 @@ Deliberately distinct from the "Available" status green below, even though both 
 
 ### 2.4 Loan-duration flag colors (`docs/workflows.md` §5.3)
 
-Terracotta family, graduated by intensity. No reinforcement beyond color shade (no icons/weight changes) — judged unnecessary for a small, low-volume private library.
+Terracotta family, graduated by intensity, shown as **pills** (11px Inter, medium weight) on the admin Requests screen (§14.4). Each is a fill + text pair; all text passes the 4.5 : 1 rule. The two mild flags use pale fills with dark text; the two serious ones use solid terracotta with cream text, so severity reads at a glance.
 
-| Flag | Color | Hex |
-|---|---|---|
-| Not yet collected | Light terracotta / clay | `#D9A98A` |
-| Needs attention (30–89 days) | Soft terracotta | `#C1704F` |
-| Long loan (90–179 days) | Medium terracotta | `#A85838` |
-| Very long loan (180+ days) | Deep terracotta / rust | `#7A3E26` |
+| Flag | Fill | Text | Border | Contrast |
+|---|---|---|---|---|
+| Not yet collected | `#F6E7DD` (pale clay) | `#8A4B2F` | `#D9A98A` | 5.6 : 1 |
+| Needs attention (30–89 days) | `#EFD3C2` (soft terracotta) | `#7E3F25` | — | 5.6 : 1 |
+| Long loan (90–179 days) | `#A85838` (terracotta) | `#FDFBF7` | — | 4.9 : 1 |
+| Very long loan (180+ days) | `#7A3E26` (rust) | `#FDFBF7` | — | 8.0 : 1 |
 
-*Note: these flag colours are **not yet used** in the build (the admin Requests screen currently shows flags as plain text). They'll be revisited — and checked against the 4.5 : 1 text rule — when the admin screens are restyled. The original note that "Needs attention" shares the "On loan" shade no longer holds, since "On loan" was darkened to `#A45F43`.*
+*History: the original single-colour values (`#D9A98A`, `#C1704F`, `#A85838`, `#7A3E26`) were never built; as text on cream the lighter two failed the contrast rule, so they became pill fills instead.*
 
 ### 2.5 Spine palette
 
@@ -414,4 +420,80 @@ The one visual nod to the teller machine. Used for **both** the confirmation (in
 - **Cancel request** — destructive pill, centred, smaller (36px tall); only while pending.
 - **Request page, other states** — Approved: line items plus "Approved." below; Returned/Cancelled: line items with the "No longer active" pill and "This request is no longer active." below. Invalid link: no slip — just the existing plain message.
 - **Foot** — "Thank you for borrowing", centred, 11px label style, muted.
+
+---
+
+## 14. Back office (admin screens)
+
+The admin area uses the same visual language as the public site, tuned for work: denser, with one obvious action per row. It's private to the owner. Behaviour is unchanged (workflows.md §5–8); this section covers presentation only.
+
+### 14.1 Header and menu — top bar
+
+Chosen over a left sidebar so tables keep the full page width.
+
+- **Left:** logo (32px) and the label "Back office" (Inter 10px, uppercase, `0.22em`, muted), linking to Today's ledger.
+- **Menu** (Inter 11px, uppercase, `0.18em`, pill hit areas as §9.1):
+  - **Today's ledger** · **Requests**
+  - **Catalogue ▾** → Books · Sync spreadsheet · Covers
+  - **My Reads ▾** → Reading list · Import Goodreads
+  - Drop-downs open on click (native `<details>`, so they work without JavaScript) into a small card in the hover-card style (§11); one open at a time; a click outside closes them.
+  - **Current page:** filled pill, as the public header. When the current page is inside a drop-down, the drop-down's label is the filled pill and the page is shown in medium weight inside it.
+- **Right:** "View site" and "Sign out" in the small muted label style.
+- **Double rule** underneath, as the public header (§9.1).
+- **Phone:** the row wraps — logo and menu first, "View site / Sign out" on their own line aligned right.
+
+The admin login page keeps the simple centred layout with the logo and library name (it has no menu).
+
+### 14.2 Page heading
+
+Every admin page opens with a small eyebrow label (Inter 11px, uppercase, `0.24em`, muted) and the page name in **italic Libre Caslon Text**, `clamp(34px, 5vw, 52px)`. An optional one-line note sits to the right (Inter 13px, muted). Page width: up to 1180px.
+
+### 14.3 Today's ledger (dashboard)
+
+- **Eyebrow:** today's date in library time, e.g. "Wednesday 14 October 2026". **Heading:** "Today's ledger". Note: "Dots mark what needs you."
+- **Two groups**, each headed by a small label over a hairline:
+  1. **Needs attention** — three tiles: Pending requests · Not yet collected · Long loans.
+  2. **The library** — five tiles: Total books · Available · Checked out · On loan · Books read.
+- **Tiles:** a grid divided by hairlines (no boxes or shadows), 18px padding. Number in Libre Caslon Text 44px with tabular figures; caption in the label style (11px, `0.16em`). Each tile links to its filtered screen (ui-specification.md §2.2); on hover the tile takes a faint sage wash and shows "Review →" or "Open →".
+- **Needs-you dot:** a 7px terracotta dot before the caption on any *Needs attention* tile whose number is above zero. A zero shows its number in the muted colour.
+- **Phone:** two tiles per row; numbers 36px.
+
+### 14.4 Requests
+
+- **Filters** (above the table), each row with a small muted label:
+  - **Status:** Pending · Approved · Show history — toggle pills (selected = filled, as genre chips §10).
+  - **Flags:** Not yet collected · Needs attention · Long loan · Very long loan — toggle pills.
+  - **Title:** an underline search line (as §9.3, left-aligned).
+  - Still a plain GET form underneath (each pill is a styled checkbox), so it works without JavaScript; with JavaScript, changing a pill applies the filters straight away.
+- **Table** — hairline rows, column headings in the label style (10px, `0.18em`, muted), 16px cell padding, tabular figures for dates. Columns:
+
+  | Column | Shows |
+  |---|---|
+  | Book | Title in Libre Caslon Text 16px; `book_id` below, small and muted |
+  | Borrower | Real name; nickname below in quotes, small and muted |
+  | Requested | "10 Oct 2026" |
+  | Status | Status pill (§6): **Pending** amber / **Approved** green / Returned & Cancelled muted. Below it, small: the queue position (pending) or the approval date (approved) |
+  | Collected | The collection date and, below it, days out ("70 days"); "—" if not yet collected |
+  | Flag | The flag pill (§2.4), if any |
+  | Actions | See below |
+
+- **Actions — one obvious next step per row**, the rest as small underlined text links:
+  - *Pending:* **Approve** (primary pill) · Cancel · New link.
+  - *Approved, not collected:* date field (pre-filled with today, editable back in time, never in the future) + **Mark collected** (primary pill); below: Mark returned (quiet outline pill) · Cancel · New link.
+  - *Approved and collected:* **Mark returned** (primary pill); below: Edit collected date · Cancel · New link.
+  - *Returned / Cancelled (history):* no actions.
+  - Action buttons are the compact pill size (32px tall, 13px text). Disabled buttons fade (§5).
+  - "New link" is the existing "Regenerate link" action; the regenerated link appears in a dashed box like the receipt link box (§13.2).
+- **Flag legend** under the table: the four flag pills in order of severity.
+- **Phone:** the table becomes one card per request (as §8), keeping the same order of information and the same actions.
+
+### 14.5 Other admin screens
+
+Books list, Book detail, Covers, Spreadsheet sync, Reading list, Edit read and Goodreads import follow the same patterns:
+
+- Page heading as §14.2.
+- Tables as §14.4 (label-style headings, hairline rows, titles in Caslon, small muted secondary lines, status pills).
+- Forms: labels in Inter 14px above fields; fields 40px tall with hairline borders and 3px corners; one primary pill per form.
+- File uploads: a dashed-border drop area (3px corners, paper fill) with a "Choose files" secondary pill, instead of the bare browser file input.
+- Previews and results (sync, covers, import) use the same row and pill styles, with new / updated / replacement / unmatched shown as small outline pills.
 

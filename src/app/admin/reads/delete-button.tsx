@@ -35,7 +35,7 @@ export function DeleteButton({ id }: { id: string }) {
       type="button"
       onClick={handleDelete}
       disabled={isPending}
-      className="destructive-button"
+      className="admin-action-link admin-action-danger"
     >
       {isPending ? "Deleting…" : "Delete"}
     </button>

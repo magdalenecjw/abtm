@@ -1,7 +1,7 @@
 # Automated Book Teller Machine — UI Specification (Screens & Information Architecture)
 
 **Document status:** Supplements `Technical_Specifications.md` v1.2 and `docs/workflows.md`
-**Date:** 12 September 2026 · **Revised:** 11 October 2026 (catalogue redesign — §1.1 header and hover rule, new §1.3 Catalogue content; teller touches — §1.2 My Reads as "Transaction history", new §1.4 borrowing screens) · 12 October 2026 (§1.1 header: current-page marker, Admin link)
+**Date:** 12 September 2026 · **Revised:** 11 October 2026 (catalogue redesign — §1.1 header and hover rule, new §1.3 Catalogue content; teller touches — §1.2 My Reads as "Transaction history", new §1.4 borrowing screens) · 12 October 2026 (§1.1 header: current-page marker, Admin link) · 14 October 2026 (§2.1–2.3 back office: top-bar menu, "Today's ledger", Requests presentation)
 
 This document defines the complete screen inventory, navigation structure, and screen-level content for both the public and admin experiences. Detailed step-by-step *behaviour* for each workflow (form validation, state transitions, server logic) lives in `docs/workflows.md` — this document focuses on *what exists* and *how it's organised*, not the mechanics of each action.
 
@@ -82,39 +82,49 @@ Behaviour is unchanged (`docs/workflows.md` §3–4); this pass changes wording 
 | 8 | My Reads (admin) — list, edit, delete | Nav → My Reads |
 | 9 | Goodreads import | Nav → My Reads |
 
-### 2.1 Admin navigation (sidebar)
+### 2.1 Admin navigation (top bar)
+
+A top-bar menu (visual-system.md §14.1) — chosen over a sidebar so tables keep the full width:
 
 ```text
-Dashboard          (landing page after login)
+Today's ledger     (landing page after login)
 Requests
-Catalogue
+Catalogue ▾
   ├─ Books
   ├─ Sync spreadsheet
   └─ Covers
-My Reads
+My Reads ▾
   ├─ Reading list
   └─ Import Goodreads
+                                   View site · Sign out
 ```
-### 2.2 Dashboard — content
 
-Eight clickable stat boxes, laid out two rows of four. Each box is both a number and a navigation shortcut into the relevant filtered screen — there are no separate content sections beyond these eight boxes (a deliberate simplification versus the original §20 sketch, which proposed a stat grid plus separate list sections).
+The current page is highlighted. "Sign out" lives in the menu bar (previously a button on the dashboard).
 
-| # | Box                                                                                                                                                                                                                                            | Links to                                                   |
-| - | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| 1 | Total books                                                                                                                                                                                                                                    | Books list                                                 |
-| 2 | Available                                                                                                                                                                                                                                      | Books list, filtered to Available                          |
-| 3 | Checked out                                                                                                                                                                                                                                    | Books list, filtered to Checked out                        |
-| 4 | On loan                                                                                                                                                                                                                                        | Books list, filtered to On loan                            |
-| 5 | Pending requests                                                                                                                                                                                                                               | Requests, filtered to Pending                              |
-| 6 | Not yet collected                                                                                                                                                                                                                              | Requests, filtered to that flag                            |
-| 7 | Long loan *(combines the "Needs attention," "Long loan," and "Very long loan" tiers from `docs/workflows.md` §5.3 into one dashboard count — the three-tier breakdown with its own colour grading still exists on the Requests screen itself)* | Requests, filtered to any of the three loan-duration flags |
-| 8 | Total reads                                                                                                                                                                                                                                    | My Reads admin list                                        |
+### 2.2 Dashboard ("Today's ledger") — content
 
-**Note:** "Available" is included as a dashboard stat because it provides a useful at-a-glance view of the catalogue's current availability. The dashboard does not include any email-delivery statistic because email delivery is no longer part of version 1. The borrowing flow does not collect email addresses, and no transactional email service is used.
+Eight clickable tiles in two groups (visual-system.md §14.3). Each tile is both a number and a navigation shortcut into the relevant filtered screen — there are no separate content sections beyond these tiles (a deliberate simplification versus the original §20 sketch, which proposed a stat grid plus separate list sections). Headed with today's date.
+
+| Group | Tile | Links to |
+|---|---|---|
+| Needs attention | Pending requests | Requests, filtered to Pending |
+| Needs attention | Not yet collected | Requests, filtered to that flag |
+| Needs attention | Long loans *(combines the "Needs attention," "Long loan," and "Very long loan" tiers from `docs/workflows.md` §5.3 into one count — the three-tier breakdown with its own colour grading still exists on the Requests screen)* | Requests, filtered to any of the three loan-duration flags |
+| The library | Total books | Books list |
+| The library | Available | Books list, filtered to Available |
+| The library | Checked out | Books list, filtered to Checked out |
+| The library | On loan | Books list, filtered to On loan |
+| The library | Books read | My Reads admin list |
+
+A *Needs attention* tile above zero shows a small terracotta dot.
+
+**Note:** "Available" is included because it gives a useful at-a-glance view of the catalogue's current availability. There is no email-delivery statistic, because email delivery is not part of version 1: the borrowing flow does not collect email addresses, and no transactional email service is used.
 
 ### 2.3 Requests — content
 
-Fully specified in `docs/workflows.md` §5. Summary: filterable dashboard (status checkboxes + "Show history" toggle; independent flag checkboxes; basic title search), with one-click admin actions (approve, cancel, mark collected, mark returned, regenerate management link) — see that document for full behaviour.
+Behaviour fully specified in `docs/workflows.md` §5: filterable list (status filters + "Show history"; independent flag filters; basic title search), with one-click admin actions (approve, cancel, mark collected, mark returned, regenerate management link).
+
+Presentation (visual-system.md §14.4): filters as toggle pills; a table showing book, borrower (real name + nickname), requested date, status (with queue position or approval date), **collected date with days out**, flag, and actions. Each row leads with one obvious next step — Approve, Mark collected (date pre-filled with today), or Mark returned — with the rarer actions as small links. On phones, one card per request.
 
 ### 2.4 Books list — content
 

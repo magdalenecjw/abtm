@@ -1,79 +1,130 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { AdminHeader } from "./admin-header";
+import { AdminPageHeading } from "./admin-page-heading";
 import { getDashboardStats } from "./dashboard-actions";
-import { logout } from "./actions";
+import { formatLongDate } from "@/lib/borrowing/receipt";
 
-function StatBox({
-  label,
-  value,
-  href,
+type Tile = { label: string; value: number; href: string };
+
+/**
+ * One ledger tile: a number and a link into the filtered screen.
+ * `needsYou` tiles get a terracotta dot when above zero; zeros are
+ * muted (visual-system.md §14.3).
+ */
+function LedgerTile({
+  tile,
+  needsYou = false,
 }: {
-  label: string;
-  value: number;
-  href: string;
+  tile: Tile;
+  needsYou?: boolean;
 }) {
+  const flagged = needsYou && tile.value > 0;
+  const className = [
+    "ledger-tile",
+    flagged ? "ledger-tile-flagged" : "",
+    tile.value === 0 ? "ledger-tile-zero" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <Link
-      href={href}
-      className="border border-[var(--rule)] rounded-[3px] p-3 hover:border-[var(--accent)] transition-colors"
-    >
-      <p className="text-xl font-caslon">{value}</p>
-      <p className="text-xs mt-1">{label}</p>
+    <Link href={tile.href} className={className}>
+      <span className="ledger-num">{tile.value}</span>
+      <span className="ledger-cap">
+        {flagged && <span className="ledger-dot" aria-hidden="true" />}
+        {tile.label}
+        {flagged && <span className="sr-only"> — needs attention</span>}
+      </span>
+      <span className="ledger-go" aria-hidden="true">
+        {needsYou ? "Review →" : "Open →"}
+      </span>
     </Link>
   );
 }
 
-// Eight clickable stat boxes, two rows of four, per
-// ui-specification.md §2.2 — each box is both a number and a
-// navigation shortcut into the relevant filtered screen.
+function LedgerGroup({
+  title,
+  tiles,
+  needsYou = false,
+}: {
+  title: string;
+  tiles: Tile[];
+  needsYou?: boolean;
+}) {
+  return (
+    <section className="ledger-group" aria-labelledby={`ledger-${title}`}>
+      <h2 id={`ledger-${title}`} className="ledger-group-title">
+        {title}
+      </h2>
+      <div
+        className="ledger-tiles"
+        style={{ "--cols": tiles.length } as CSSProperties}
+      >
+        {tiles.map((t) => (
+          <LedgerTile key={t.label} tile={t} needsYou={needsYou} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// "Today's ledger" — the admin dashboard (ui-specification.md §2.2,
+// visual-system.md §14.3): the same eight figures as before, grouped
+// into what needs attention and the state of the library. Each tile
+// links into the relevant filtered screen.
 export default async function AdminDashboardPage() {
   const stats = await getDashboardStats();
 
-  return (
-    <main className="max-w-4xl mx-auto px-6 py-12 md:px-8">
-      <AdminHeader />
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="page-heading">Dashboard</h1>
-        <form action={logout}>
-          <button type="submit" className="secondary-button">
-            Sign out
-          </button>
-        </form>
-      </div>
+  const needsAttention: Tile[] = [
+    {
+      label: "Pending requests",
+      value: stats.pendingRequests,
+      href: "/admin/requests?submitted=1&pending=1",
+    },
+    {
+      label: "Not yet collected",
+      value: stats.notYetCollected,
+      href: "/admin/requests?submitted=1&approved=1&flags=not_yet_collected",
+    },
+    {
+      label: "Long loans",
+      value: stats.longLoan,
+      href: "/admin/requests?submitted=1&approved=1&flags=needs_attention&flags=long_loan&flags=very_long_loan",
+    },
+  ];
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl">
-        <StatBox label="Total books" value={stats.totalBooks} href="/admin/books" />
-        <StatBox
-          label="Available"
-          value={stats.available}
-          href="/admin/books?status=available"
-        />
-        <StatBox
-          label="Checked out"
-          value={stats.checkedOut}
-          href="/admin/books?status=checked_out"
-        />
-        <StatBox
-          label="On loan"
-          value={stats.onLoan}
-          href="/admin/books?status=on_loan"
-        />
-        <StatBox
-          label="Pending requests"
-          value={stats.pendingRequests}
-          href="/admin/requests?submitted=1&pending=1"
-        />
-        <StatBox
-          label="Not yet collected"
-          value={stats.notYetCollected}
-          href="/admin/requests?submitted=1&approved=1&flags=not_yet_collected"
-        />
-        <StatBox
-          label="Long loan"
-          value={stats.longLoan}
-          href="/admin/requests?submitted=1&approved=1&flags=needs_attention&flags=long_loan&flags=very_long_loan"
-        />
-        <StatBox label="Total reads" value={stats.totalReads} href="/admin/reads" />
+  const library: Tile[] = [
+    { label: "Total books", value: stats.totalBooks, href: "/admin/books" },
+    {
+      label: "Available",
+      value: stats.available,
+      href: "/admin/books?status=available",
+    },
+    {
+      label: "Checked out",
+      value: stats.checkedOut,
+      href: "/admin/books?status=checked_out",
+    },
+    {
+      label: "On loan",
+      value: stats.onLoan,
+      href: "/admin/books?status=on_loan",
+    },
+    { label: "Books read", value: stats.totalReads, href: "/admin/reads" },
+  ];
+
+  return (
+    <main className="admin-page">
+      <AdminHeader current="ledger" />
+      <AdminPageHeading
+        eyebrow={formatLongDate()}
+        title="Today's ledger"
+        note="Dots mark what needs you."
+      />
+      <div className="ledger">
+        <LedgerGroup title="Needs attention" tiles={needsAttention} needsYou />
+        <LedgerGroup title="The library" tiles={library} />
       </div>
     </main>
   );

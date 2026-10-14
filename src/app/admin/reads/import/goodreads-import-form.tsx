@@ -9,6 +9,7 @@ import {
 } from "./actions";
 import type { GoodreadsMatchResult } from "@/lib/goodreads/match";
 import { BookPicker } from "@/app/admin/book-picker";
+import { FileDrop } from "../../file-drop";
 
 type RowState = {
   match: GoodreadsMatchResult;
@@ -101,17 +102,14 @@ export function GoodreadsImportForm() {
     <div>
       {(phase.step === "idle" || phase.step === "errors") && (
         <form ref={formRef} action={handlePreviewSubmit}>
-          <label htmlFor="file" className="text-sm block mb-2">
-            Goodreads library export (.csv)
-          </label>
-          <input
+          <FileDrop
             id="file"
             name="file"
-            type="file"
             accept=".csv"
             required
             disabled={isPending}
-            className="file-input"
+            title="Goodreads library export"
+            hint="The .csv file from Goodreads → My Books → Import and export."
           />
           <div className="mt-4">
             <button type="submit" disabled={isPending} className="primary-button">
@@ -134,7 +132,7 @@ export function GoodreadsImportForm() {
 
       {phase.step === "preview" && (
         <div className="mt-2">
-          <h2 className="book-title text-lg mb-2">Preview</h2>
+          <h2 className="admin-section-title">Preview</h2>
           <p className="text-sm mb-4">
             To import: {phase.rows.filter((r) => r.include).length} of{" "}
             {phase.rows.length} — Already imported:{" "}
@@ -149,7 +147,7 @@ export function GoodreadsImportForm() {
               tool like Requests/Books/My Reads), a horizontal-scroll
               wrapper is a reasonable, lower-risk exception here. */}
           <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse mb-4 min-w-[700px]">
+          <table className="admin-table mb-4 min-w-[700px]">
             <thead>
               <tr className="border-b border-[var(--rule)] text-left">
                 <th className="p-2">Include</th>

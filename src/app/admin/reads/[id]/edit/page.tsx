@@ -1,4 +1,5 @@
 import { AdminHeader } from "@/app/admin/admin-header";
+import { AdminPageHeading } from "@/app/admin/admin-page-heading";
 import { getReadById } from "../../actions";
 import { EditReadForm } from "./edit-read-form";
 
@@ -14,17 +15,17 @@ export default async function EditReadPage({
 
   if (!read) {
     return (
-      <main className="max-w-4xl mx-auto px-6 py-12">
-        <AdminHeader />
+      <main className="admin-page">
+        <AdminHeader current="reads" />
         <p>This read could not be found.</p>
       </main>
     );
   }
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-12">
-      <AdminHeader />
-      <h1 className="page-heading mb-6">Edit read</h1>
+    <main className="admin-page">
+      <AdminHeader current="reads" />
+      <AdminPageHeading eyebrow="My Reads" title="Edit read" />
       <EditReadForm read={read} />
     </main>
   );

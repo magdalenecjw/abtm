@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { previewUpload, applyUpload, type ApplyActionResult } from "./actions";
 import type { SyncRow } from "@/lib/spreadsheet-sync/parse";
 import type { PreviewResult } from "@/lib/spreadsheet-sync/preview";
+import { FileDrop } from "../../file-drop";
 
 type Phase =
   | { step: "idle" }
@@ -43,17 +44,14 @@ export function SyncForm() {
     <div>
       {(phase.step === "idle" || phase.step === "errors") && (
         <form ref={formRef} action={handlePreviewSubmit}>
-          <label htmlFor="file" className="text-sm block mb-2">
-            Catalogue spreadsheet (.xlsx)
-          </label>
-          <input
+          <FileDrop
             id="file"
             name="file"
-            type="file"
             accept=".xlsx"
             required
             disabled={isPending}
-            className="file-input"
+            title="Catalogue spreadsheet"
+            hint="An .xlsx file with book_id, title, author, genre, notes and active columns."
           />
           <div className="mt-4">
             <button type="submit" disabled={isPending} className="primary-button">
@@ -80,7 +78,7 @@ export function SyncForm() {
 
       {phase.step === "preview" && (
         <div className="mt-2">
-          <h2 className="book-title text-lg mb-3">Preview</h2>
+          <h2 className="admin-section-title">Preview</h2>
           <ul className="text-sm mb-4">
             <li>New: {phase.preview.newRows.length}</li>
             <li>Updated: {phase.preview.updatedRows.length}</li>
@@ -90,7 +88,7 @@ export function SyncForm() {
 
           {phase.preview.newRows.length > 0 && (
             <section className="mb-4">
-              <h3 className="text-sm font-medium mb-1">New books</h3>
+              <h3 className="admin-subsection-title">New books</h3>
               <ul className="text-sm list-disc pl-5">
                 {phase.preview.newRows.map((row) => (
                   <li key={row.book_id}>
@@ -103,7 +101,7 @@ export function SyncForm() {
 
           {phase.preview.updatedRows.length > 0 && (
             <section className="mb-4">
-              <h3 className="text-sm font-medium mb-1">Updated books</h3>
+              <h3 className="admin-subsection-title">Updated books</h3>
               <ul className="text-sm list-disc pl-5">
                 {phase.preview.updatedRows.map(({ row, diffs }) => (
                   <li key={row.book_id}>
@@ -123,7 +121,7 @@ export function SyncForm() {
 
           {phase.preview.missingBookIds.length > 0 && (
             <section className="mb-4">
-              <h3 className="text-sm font-medium mb-1">
+              <h3 className="admin-subsection-title">
                 Missing from spreadsheet (no action taken)
               </h3>
               <p className="text-sm mb-2">

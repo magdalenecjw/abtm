@@ -1,8 +1,23 @@
 import { AdminHeader } from "../admin-header";
+import { AdminPageHeading } from "../admin-page-heading";
 import { getAllRequestsForAdmin } from "./actions";
-import { filterRequests } from "@/lib/borrowing/filter-requests";
+import {
+  filterRequests,
+  type AdminRequestRow,
+  type RequestStatus,
+} from "@/lib/borrowing/filter-requests";
 import { parseRequestFilters } from "@/lib/borrowing/parse-filters";
+import {
+  formatQueuePosition,
+  pendingAheadCounts,
+} from "@/lib/borrowing/queue-position";
+import {
+  daysSince,
+  formatDateOnly,
+  formatRequestedAt,
+} from "@/lib/borrowing/receipt";
 import { RequestRowActions } from "./request-row-actions";
+import { AutoSubmitForm } from "./auto-submit-form";
 
 const FLAG_LABEL: Record<string, string> = {
   not_yet_collected: "Not yet collected",
@@ -11,8 +26,81 @@ const FLAG_LABEL: Record<string, string> = {
   very_long_loan: "Very long loan",
 };
 
-// This is the listing + filters half of the dashboard
-// (workflows.md §5.1-5.2).
+const STATUS_PILL: Record<RequestStatus, { label: string; className: string }> =
+  {
+    pending: { label: "Pending", className: "status-checked-out" },
+    approved: { label: "Approved", className: "status-available" },
+    returned: { label: "Returned", className: "admin-status-muted" },
+    cancelled: { label: "Cancelled", className: "admin-status-muted" },
+  };
+
+/** "10 Oct 2026" from a timestamp, in library time. */
+function shortDate(iso: string): string {
+  return formatRequestedAt(iso).split(",")[0];
+}
+
+/** The small line under the status pill (visual-system.md §14.4). */
+function statusDetail(r: AdminRequestRow, ahead: number | undefined): string {
+  if (r.status === "pending" && ahead !== undefined) {
+    return formatQueuePosition(ahead);
+  }
+  if (r.status === "approved" && r.approvedAt) {
+    return `Approved ${shortDate(r.approvedAt)}`;
+  }
+  if (r.status === "returned" && r.returnDate) {
+    return `Returned ${shortDate(r.returnDate)}`;
+  }
+  return "";
+}
+
+function FlagPill({ flag }: { flag: AdminRequestRow["attentionFlag"] }) {
+  if (!flag) return null;
+  return <span className={`flag-pill flag-${flag}`}>{FLAG_LABEL[flag]}</span>;
+}
+
+function Collected({ r }: { r: AdminRequestRow }) {
+  if (!r.collectionDate) return <span className="admin-muted">—</span>;
+  const days = daysSince(r.collectionDate);
+  return (
+    <>
+      <span>{formatDateOnly(r.collectionDate)}</span>
+      {r.status === "approved" && (
+        <span className="admin-sub">
+          {days} {days === 1 ? "day" : "days"} out
+        </span>
+      )}
+    </>
+  );
+}
+
+function FilterPill({
+  name,
+  value,
+  checked,
+  label,
+}: {
+  name: string;
+  value: string;
+  checked: boolean;
+  label: string;
+}) {
+  return (
+    <label className="filter-pill">
+      <input
+        type="checkbox"
+        name={name}
+        value={value}
+        defaultChecked={checked}
+      />
+      <span>{label}</span>
+    </label>
+  );
+}
+
+// Requests (workflows.md §5.1–5.2, visual-system.md §14.4). Filters are
+// still a plain GET form underneath — each pill is a styled checkbox —
+// so they work without JavaScript; AutoSubmitForm applies them as soon
+// as one changes.
 export default async function AdminRequestsPage({
   searchParams,
 }: {
@@ -22,147 +110,182 @@ export default async function AdminRequestsPage({
   const filters = parseRequestFilters(sp);
   const allRequests = await getAllRequestsForAdmin();
   const requests = filterRequests(allRequests, filters);
+  const ahead = pendingAheadCounts(
+    allRequests.map((r) => ({
+      id: r.id,
+      bookKey: r.bookIdCode,
+      status: r.status,
+      requestedAt: r.requestedAt,
+    })),
+  );
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-12 md:px-8">
-      <AdminHeader />
-      <h1 className="page-heading mb-6">Requests</h1>
+    <main className="admin-page">
+      <AdminHeader current="requests" />
+      <AdminPageHeading
+        title="Requests"
+        note="Filters apply as soon as you change them."
+      />
 
-      <form method="get" className="mb-6 flex flex-col gap-3">
+      <AutoSubmitForm className="admin-filters">
         <input type="hidden" name="submitted" value="1" />
-
-        <div className="flex gap-4 text-sm">
-          <label className="flex items-center gap-1">
-            <input
-              type="checkbox"
-              name="pending"
-              value="1"
-              defaultChecked={filters.showPending}
-            />
-            Pending
-          </label>
-          <label className="flex items-center gap-1">
-            <input
-              type="checkbox"
-              name="approved"
-              value="1"
-              defaultChecked={filters.showApproved}
-            />
-            Approved
-          </label>
-          <label className="flex items-center gap-1">
-            <input
-              type="checkbox"
-              name="history"
-              value="1"
-              defaultChecked={filters.showHistory}
-            />
-            Show history
-          </label>
+        <div className="admin-filter-row">
+          <span className="admin-filter-label">Status</span>
+          <FilterPill
+            name="pending"
+            value="1"
+            checked={filters.showPending}
+            label="Pending"
+          />
+          <FilterPill
+            name="approved"
+            value="1"
+            checked={filters.showApproved}
+            label="Approved"
+          />
+          <FilterPill
+            name="history"
+            value="1"
+            checked={filters.showHistory}
+            label="Show history"
+          />
         </div>
-
-        <div className="flex gap-4 text-sm">
+        <div className="admin-filter-row">
+          <span className="admin-filter-label">Flags</span>
           {Object.entries(FLAG_LABEL).map(([value, label]) => (
-            <label key={value} className="flex items-center gap-1">
-              <input
-                type="checkbox"
-                name="flags"
-                value={value}
-                defaultChecked={filters.flags.includes(
-                  value as (typeof filters.flags)[number],
-                )}
-              />
-              {label}
-            </label>
+            <FilterPill
+              key={value}
+              name="flags"
+              value={value}
+              checked={filters.flags.includes(
+                value as (typeof filters.flags)[number],
+              )}
+              label={label}
+            />
           ))}
         </div>
-
-        <div>
-          <label htmlFor="q" className="text-sm block mb-1">
-            Search by title
+        <div className="admin-filter-row">
+          <label htmlFor="q" className="admin-filter-label">
+            Title
           </label>
           <input
             id="q"
             name="q"
-            type="text"
+            type="search"
             defaultValue={filters.titleSearch}
-            className="search-input"
+            placeholder="Search by title"
+            className="admin-search-line"
           />
         </div>
-
-        <button type="submit" className="secondary-button self-start">
-          Apply filters
-        </button>
-      </form>
+      </AutoSubmitForm>
 
       {requests.length === 0 ? (
-        <p>No requests match these filters.</p>
+        <p className="shelf-empty">No requests match these filters.</p>
       ) : (
         <>
           {/* Desktop/tablet: table */}
-          <table className="hidden sm:table w-full text-sm border-collapse">
-            <thead>
-              <tr className="border-b border-[var(--rule)] text-left">
-                <th className="p-2">Book</th>
-                <th className="p-2">Requester</th>
-                <th className="p-2">Nickname</th>
-                <th className="p-2">Requested</th>
-                <th className="p-2">Status</th>
-                <th className="p-2">Flag</th>
-                <th className="p-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((r) => (
-                <tr key={r.id} className="border-b border-[var(--rule)]">
-                  <td className="p-2">
-                    {r.bookTitle} ({r.bookIdCode})
-                  </td>
-                  <td className="p-2">{r.realName}</td>
-                  <td className="p-2">{r.nickname}</td>
-                  <td className="p-2">
-                    {new Date(r.requestedAt).toLocaleDateString()}
-                  </td>
-                  <td className="p-2">{r.status}</td>
-                  <td className="p-2">
-                    {r.attentionFlag ? FLAG_LABEL[r.attentionFlag] : ""}
-                  </td>
-                  <td className="p-2">
-                    <RequestRowActions request={r} />
-                  </td>
+          <div className="admin-table-wrap admin-desktop-only">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Book</th>
+                  <th>Borrower</th>
+                  <th>Requested</th>
+                  <th>Status</th>
+                  <th>Collected</th>
+                  <th>Flag</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {requests.map((r) => {
+                  const pill = STATUS_PILL[r.status];
+                  const detail = statusDetail(r, ahead.get(r.id));
+                  return (
+                    <tr key={r.id}>
+                      <td>
+                        <span className="admin-book-title">{r.bookTitle}</span>
+                        <span className="admin-sub">{r.bookIdCode}</span>
+                      </td>
+                      <td>
+                        <span>{r.realName}</span>
+                        <span className="admin-sub">
+                          &ldquo;{r.nickname}&rdquo;
+                        </span>
+                      </td>
+                      <td className="admin-nowrap">
+                        {shortDate(r.requestedAt)}
+                      </td>
+                      <td>
+                        <span className={`status-badge ${pill.className}`}>
+                          {pill.label}
+                        </span>
+                        {detail && <span className="admin-sub">{detail}</span>}
+                      </td>
+                      <td className="admin-nowrap">
+                        <Collected r={r} />
+                      </td>
+                      <td>
+                        <FlagPill flag={r.attentionFlag} />
+                      </td>
+                      <td>
+                        <RequestRowActions request={r} />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
 
-          {/* Mobile: stacked card per row, per visual-system.md §8 */}
-          <div className="sm:hidden flex flex-col gap-4">
-            {requests.map((r) => (
-              <div
-                key={r.id}
-                className="border border-[var(--rule)] rounded-[3px] p-4"
-              >
-                <p className="book-title text-base mb-1">
-                  {r.bookTitle} ({r.bookIdCode})
-                </p>
-                <dl className="text-sm grid grid-cols-[90px_1fr] gap-y-1 mb-3">
-                  <dt className="opacity-70">Requester</dt>
-                  <dd>{r.realName}</dd>
-                  <dt className="opacity-70">Nickname</dt>
-                  <dd>{r.nickname}</dd>
-                  <dt className="opacity-70">Requested</dt>
-                  <dd>{new Date(r.requestedAt).toLocaleDateString()}</dd>
-                  <dt className="opacity-70">Status</dt>
-                  <dd>{r.status}</dd>
-                  {r.attentionFlag && (
-                    <>
-                      <dt className="opacity-70">Flag</dt>
-                      <dd>{FLAG_LABEL[r.attentionFlag]}</dd>
-                    </>
-                  )}
-                </dl>
-                <RequestRowActions request={r} />
-              </div>
+          {/* Phones: one card per request (visual-system.md §8, §14.4) */}
+          <ul className="admin-cards admin-phone-only">
+            {requests.map((r) => {
+              const pill = STATUS_PILL[r.status];
+              const detail = statusDetail(r, ahead.get(r.id));
+              return (
+                <li key={r.id} className="admin-card">
+                  <div className="admin-card-top">
+                    <div>
+                      <span className="admin-book-title">{r.bookTitle}</span>
+                      <span className="admin-sub">{r.bookIdCode}</span>
+                    </div>
+                    <FlagPill flag={r.attentionFlag} />
+                  </div>
+                  <dl className="admin-card-facts">
+                    <dt>Borrower</dt>
+                    <dd>
+                      {r.realName}{" "}
+                      <span className="admin-muted">
+                        &ldquo;{r.nickname}&rdquo;
+                      </span>
+                    </dd>
+                    <dt>Requested</dt>
+                    <dd>{shortDate(r.requestedAt)}</dd>
+                    <dt>Status</dt>
+                    <dd>
+                      <span className={`status-badge ${pill.className}`}>
+                        {pill.label}
+                      </span>
+                      {detail && <span className="admin-sub">{detail}</span>}
+                    </dd>
+                    <dt>Collected</dt>
+                    <dd>
+                      <Collected r={r} />
+                    </dd>
+                  </dl>
+                  <RequestRowActions request={r} />
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="admin-legend" aria-hidden="true">
+            <span className="admin-filter-label">Flag colours</span>
+            {Object.entries(FLAG_LABEL).map(([value, label]) => (
+              <span key={value} className={`flag-pill flag-${value}`}>
+                {label}
+              </span>
             ))}
           </div>
         </>

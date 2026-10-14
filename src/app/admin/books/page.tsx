@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { AdminHeader } from "../admin-header";
+import { AdminPageHeading } from "../admin-page-heading";
 import { getAllBooksForAdmin, type BookStatus } from "./actions";
+import { splitGenres } from "@/lib/catalogue/genres";
 
 const STATUS_LABEL: Record<BookStatus, string> = {
   available: "Available",
@@ -14,17 +16,35 @@ const STATUS_CLASS: Record<BookStatus, string> = {
   on_loan: "status-on-loan",
 };
 
+const STATUS_FILTERS: { value: string; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "available", label: "Available" },
+  { value: "checked_out", label: "Checked out" },
+  { value: "on_loan", label: "On loan" },
+];
+
+function booksHref(status: string, q: string): string {
+  const params = new URLSearchParams();
+  if (status && status !== "all") params.set("status", status);
+  if (q) params.set("q", q);
+  const query = params.toString();
+  return query ? `/admin/books?${query}` : "/admin/books";
+}
+
+// Books list (ui-specification.md §2.4, visual-system.md §14.5): every
+// book including inactive ones. Status filters are pill links and the
+// search is a plain GET form, so both work without JavaScript.
 export default async function AdminBooksPage({
   searchParams,
 }: {
   searchParams: Promise<{ status?: string; q?: string }>;
 }) {
-  const { status, q } = await searchParams;
+  const { status = "all", q = "" } = await searchParams;
   const allBooks = await getAllBooksForAdmin();
 
-  const query = q?.trim().toLowerCase() ?? "";
+  const query = q.trim().toLowerCase();
   const books = allBooks.filter((b) => {
-    if (status && status !== "all" && b.status !== status) return false;
+    if (status !== "all" && b.status !== status) return false;
     if (
       query &&
       !`${b.title} ${b.author} ${b.bookIdCode}`.toLowerCase().includes(query)
@@ -35,108 +55,135 @@ export default async function AdminBooksPage({
   });
 
   return (
-    <main className="max-w-4xl mx-auto px-6 py-12 md:px-8">
-      <AdminHeader />
-      <h1 className="page-heading mb-6">Books</h1>
+    <main className="admin-page">
+      <AdminHeader current="books" />
+      <AdminPageHeading
+        eyebrow="Catalogue"
+        title="Books"
+        note={`${books.length} of ${allBooks.length} books, including hidden ones`}
+      />
 
-      <form method="get" className="mb-6 flex flex-wrap gap-2 items-end">
-        <div>
-          <label htmlFor="q" className="text-sm block mb-1">
+      <div className="admin-filters">
+        <div className="admin-filter-row">
+          <span className="admin-filter-label">Status</span>
+          {STATUS_FILTERS.map((f) => (
+            <Link
+              key={f.value}
+              href={booksHref(f.value, q)}
+              scroll={false}
+              className="chip"
+              aria-current={status === f.value ? "true" : undefined}
+            >
+              {f.label}
+            </Link>
+          ))}
+        </div>
+        <form method="get" className="admin-filter-row">
+          <label htmlFor="q" className="admin-filter-label">
             Search
           </label>
+          {status !== "all" && (
+            <input type="hidden" name="status" value={status} />
+          )}
           <input
             id="q"
             name="q"
-            type="text"
-            defaultValue={q ?? ""}
+            type="search"
+            defaultValue={q}
             placeholder="Title, author, or book_id"
-            className="search-input"
+            className="admin-search-line"
           />
-        </div>
-        <div>
-          <label htmlFor="status" className="text-sm block mb-1">
-            Status
-          </label>
-          <select
-            id="status"
-            name="status"
-            defaultValue={status ?? "all"}
-            className="search-input"
-          >
-            <option value="all">All</option>
-            <option value="available">Available</option>
-            <option value="checked_out">Checked out</option>
-            <option value="on_loan">On loan</option>
-          </select>
-        </div>
-        <button type="submit" className="secondary-button">
-          Apply
-        </button>
-      </form>
-
-      {/* Desktop/tablet: table */}
-      <table className="hidden sm:table w-full text-sm border-collapse">
-        <thead>
-          <tr className="border-b border-[var(--rule)] text-left">
-            <th className="p-2">book_id</th>
-            <th className="p-2">Title</th>
-            <th className="p-2">Author</th>
-            <th className="p-2">Genre</th>
-            <th className="p-2">Status</th>
-            <th className="p-2">Active</th>
-          </tr>
-        </thead>
-        <tbody>
-          {books.map((b) => (
-            <tr key={b.id} className="border-b border-[var(--rule)]">
-              <td className="p-2">
-                <Link href={`/admin/books/${b.id}`} className="text-link">
-                  {b.bookIdCode}
-                </Link>
-              </td>
-              <td className="p-2">
-                <Link href={`/admin/books/${b.id}`} className="text-link">
-                  {b.title}
-                </Link>
-              </td>
-              <td className="p-2">{b.author}</td>
-              <td className="p-2">{b.genre}</td>
-              <td className={`p-2 font-medium ${STATUS_CLASS[b.status]}`}>
-                {STATUS_LABEL[b.status]}
-              </td>
-              <td className="p-2">{b.active ? "Yes" : "No"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/* Mobile: stacked card per row, per visual-system.md §8 */}
-      <div className="sm:hidden flex flex-col gap-3">
-        {books.map((b) => (
-          <Link
-            key={b.id}
-            href={`/admin/books/${b.id}`}
-            className="block border border-[var(--rule)] rounded-[3px] p-4"
-          >
-            <p className="book-title text-base mb-1">
-              {b.title} ({b.bookIdCode})
-            </p>
-            <p className="text-sm mb-2">{b.author}</p>
-            <dl className="text-sm grid grid-cols-[70px_1fr] gap-y-1">
-              <dt className="opacity-70">Genre</dt>
-              <dd>{b.genre}</dd>
-              <dt className="opacity-70">Status</dt>
-              <dd className={`font-medium ${STATUS_CLASS[b.status]}`}>
-                {STATUS_LABEL[b.status]}
-              </dd>
-              <dt className="opacity-70">Active</dt>
-              <dd>{b.active ? "Yes" : "No"}</dd>
-            </dl>
-          </Link>
-        ))}
+          <button type="submit" className="sr-only">
+            Search
+          </button>
+        </form>
       </div>
 
-      {books.length === 0 && <p className="mt-4">No books match these filters.</p>}
+      {books.length === 0 ? (
+        <p className="shelf-empty">No books match these filters.</p>
+      ) : (
+        <>
+          <div className="admin-table-wrap admin-desktop-only">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Book</th>
+                  <th>Author</th>
+                  <th>Genre</th>
+                  <th>Status</th>
+                  <th>Shown publicly</th>
+                </tr>
+              </thead>
+              <tbody>
+                {books.map((b) => (
+                  <tr key={b.id}>
+                    <td>
+                      <Link
+                        href={`/admin/books/${b.id}`}
+                        className="admin-row-link"
+                      >
+                        <span className="admin-book-title">{b.title}</span>
+                      </Link>
+                      <span className="admin-sub">{b.bookIdCode}</span>
+                    </td>
+                    <td>{b.author}</td>
+                    <td>{splitGenres(b.genre).join(" · ")}</td>
+                    <td>
+                      <span
+                        className={`status-badge ${STATUS_CLASS[b.status]}`}
+                      >
+                        {STATUS_LABEL[b.status]}
+                      </span>
+                    </td>
+                    <td>
+                      {b.active ? (
+                        "Yes"
+                      ) : (
+                        <span className="admin-hidden-pill">Hidden</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <ul className="admin-cards admin-phone-only">
+            {books.map((b) => (
+              <li key={b.id} className="admin-card">
+                <div className="admin-card-top">
+                  <div>
+                    <Link
+                      href={`/admin/books/${b.id}`}
+                      className="admin-row-link"
+                    >
+                      <span className="admin-book-title">{b.title}</span>
+                    </Link>
+                    <span className="admin-sub">
+                      {b.bookIdCode} · {b.author}
+                    </span>
+                  </div>
+                  <span className={`status-badge ${STATUS_CLASS[b.status]}`}>
+                    {STATUS_LABEL[b.status]}
+                  </span>
+                </div>
+                <dl className="admin-card-facts">
+                  <dt>Genre</dt>
+                  <dd>{splitGenres(b.genre).join(" · ")}</dd>
+                  <dt>Shown</dt>
+                  <dd>
+                    {b.active ? (
+                      "Yes"
+                    ) : (
+                      <span className="admin-hidden-pill">Hidden</span>
+                    )}
+                  </dd>
+                </dl>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </main>
   );
 }
