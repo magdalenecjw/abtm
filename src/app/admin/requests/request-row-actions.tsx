@@ -11,6 +11,7 @@ import {
   type ActionResult,
 } from "./actions";
 import type { AdminRequestRow } from "@/lib/borrowing/filter-requests";
+import { formatDateOnly, todayInLibraryTime } from "@/lib/borrowing/receipt";
 
 // All actions are immediate on click, no confirmation dialogs —
 // consistent with workflows.md §5.4's "low-stakes, single-admin
@@ -19,8 +20,12 @@ export function RequestRowActions({ request }: { request: AdminRequestRow }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  // Pre-filled with today (library time) so "Mark collected" works in
+  // one click; still editable for backdating (workflows.md §5.4).
+  // Previously empty, which left the button disabled with no visible
+  // reason — the cause of "can't mark as collected".
   const [collectionDateInput, setCollectionDateInput] = useState(
-    request.collectionDate ?? "",
+    request.collectionDate ?? todayInLibraryTime(),
   );
   const [regeneratedLink, setRegeneratedLink] = useState<string | null>(null);
 
@@ -100,9 +105,19 @@ export function RequestRowActions({ request }: { request: AdminRequestRow }) {
 
       {request.status === "approved" && (
         <div className="flex flex-col gap-2">
+          {request.collectionDate && (
+            <p className="text-sm">
+              Collected {formatDateOnly(request.collectionDate)}
+            </p>
+          )}
           <div className="flex gap-2 items-center flex-wrap">
+            <label htmlFor={`collected-${request.id}`} className="sr-only">
+              Collection date
+            </label>
             <input
+              id={`collected-${request.id}`}
               type="date"
+              max={todayInLibraryTime()}
               value={collectionDateInput}
               onChange={(e) => setCollectionDateInput(e.target.value)}
               disabled={isPending}

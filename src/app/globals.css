@@ -166,6 +166,26 @@ a {
   line-height: 1.2;
 }
 
+/* Disabled buttons look disabled — a disabled button that looks
+   active silently does nothing when clicked. */
+
+.primary-button:disabled,
+.secondary-button:disabled,
+.destructive-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.primary-button:disabled:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.secondary-button:disabled:hover {
+  background: transparent;
+  color: var(--accent);
+}
+
 /* Forms */
 
 .search-input {

@@ -31,5 +31,30 @@ export function formatRequestedAt(iso: string): string {
   return `${parts.day} ${parts.month} ${parts.year}, ${parts.hour}:${parts.minute}`;
 }
 
+/**
+ * Today's date in library time as "YYYY-MM-DD" — the value format of
+ * <input type="date">. Used to pre-fill the admin collection date.
+ */
+export function todayInLibraryTime(now: Date = new Date()): string {
+  // en-CA formats dates as YYYY-MM-DD.
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: LIBRARY_TIME_ZONE,
+  }).format(now);
+}
+
+/** "2026-10-14" (a date-only value) → "14 Oct 2026". */
+export function formatDateOnly(isoDate: string): string {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  if (!y || !m || !d) return isoDate;
+  const month = new Intl.DateTimeFormat("en-GB", {
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(y, m - 1, d)));
+  return `${d} ${month} ${y}`;
+}
+
 /** The three ways the slip can describe a request's status. */
 export type ReceiptStatus = "pending" | "approved" | "inactive";
